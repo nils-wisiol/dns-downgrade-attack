@@ -51,6 +51,8 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     logger.info(indent(q.to_text()))
     logger.info(f"Forwarding query {q.id} from {host}:{port} ...")
     a = dns.query.udp(q, where=ns, port=int(os.environ.get('ADNSSEC_UPSTREAM_PORT', 53)), timeout=1)
+    logger.info(f"Received upstream answer for {q.id}, {host}:{port} ...")
+    logger.info(indent(a.to_text()))
 
     accept_algorithm = {}  # all
     for opt in next(iter(q.opt.items)).options:
