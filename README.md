@@ -32,8 +32,11 @@ Standard query to this server result in the standard answers:
 dig SOA +dnssec @yourns.example.com your.zone.example.com
 ```
 
-Querying this server setting a special EDNS flag will only return ED25519 signatures:
+Querying this server setting EDNS Option #14 with a byte array of acceptable algorithms will filter the response's
+RRSIGs according to the algorithm in use:
 
 ```shell
-dig SOA +dnssec @yourns.example.com your.zone.example.com +ednsflags=0xc000
+dig SOA +dnssec @yourns.example.com your.zone.example.com +ednsopt=14:0d05
 ```
+
+This will only transmit signatures of type `0x0d = 13` (ECDSAP256SHA256) and `0x05 = 5` (RSASHA1).

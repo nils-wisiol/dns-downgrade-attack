@@ -21,7 +21,8 @@ docker-compose exec ns knotc zone-set $ZONE @ 3600 TXT "agility"
 docker-compose exec ns knotc zone-commit $ZONE
 
 echo "Adding keys"
-docker-compose exec ns keymgr $ZONE. generate zsk=true ksk=true algorithm=rsasha1 size=1024
+# automatically added by policy:
+#docker-compose exec ns keymgr $ZONE. generate zsk=true ksk=true algorithm=rsasha1 size=1024
 # save some space otherwise full answers won't fit into UDP packets
 #docker-compose exec ns keymgr $ZONE. generate zsk=true ksk=true algorithm=rsasha256 size=1024
 #docker-compose exec ns keymgr $ZONE. generate zsk=true ksk=true algorithm=rsasha512 size=1024

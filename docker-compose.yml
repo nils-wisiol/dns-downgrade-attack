@@ -7,6 +7,9 @@ services:
     - ns_storage:/storage
     - ns_rundir:/rundir
     - ./ns/config:/config
+    ports:
+    - 5301:53/udp
+    - 5301:53/tcp
     command: knotd
     networks:
     - backend
@@ -16,6 +19,10 @@ services:
     - ./fns/:/fns
     ports:
     - 53:5300/udp
+    - 53:5300/tcp
+    environment:
+      ADNSSEC_UPSTREAM_HOST: ns
+      ADNSSEC_UPSTREAM_PORT: 53
     networks:
     - backend
     command: python3 /fns/fns.py
