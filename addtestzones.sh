@@ -40,14 +40,17 @@ create_zone() {
 delegate() {
   SUBNAME=$1
   PARENT=$2
+  SECURE=$3
   echo "Adding NS and DS for $SUBNAME.$PARENT to $PARENT"
   knotc zone-begin "$PARENT"
   knotc zone-set "$PARENT" "$SUBNAME" 3600 NS "$NS."
-  keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
-  do
-    echo knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
-    knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
-  done
+  if [[ -n "$SECURE" ]]; then
+    keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
+    do
+      echo knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
+      knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
+    done
+  fi
   knotc zone-commit "$PARENT"
 }
 
@@ -66,15 +69,17 @@ created_signedok_zone() {
   SUBNAME="${ALGORITHM}-${KEYSIZE}-signedok"
   ZONE="${SUBNAME}.${DOMAIN}"
   create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE"
-  delegate "$SUBNAME" "$DOMAIN"
+  delegate "$SUBNAME" "$DOMAIN" securely
 }
 
 created_signedbrokennods_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
   DOMAIN=$3
-  ZONE="${ALGORITHM}-${KEYSIZE}-signedbrokennods.${DOMAIN}"
+  SUBNAME="${ALGORITHM}-${KEYSIZE}-signedbrokennods"
+  ZONE="${SUBNAME}.${DOMAIN}"
   create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE"
+  delegate "$SUBNAME" "$DOMAIN"
 }
 
 created_unsigned_zone() {
@@ -83,6 +88,7 @@ created_unsigned_zone() {
   DOMAIN=$3
   ZONE="unsigned.${DOMAIN}"
   create_zone "$ZONE"
+  delegate "unsigned" "$DOMAIN"
 }
 
 keysizes() {
