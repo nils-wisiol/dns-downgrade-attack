@@ -40,17 +40,17 @@ delegate() {
   SUBNAME=$1
   PARENT=$2
   echo "Adding NS and DS for $SUBNAME.$PARENT to $PARENT"
-  knotc zone-begin "$ZONE"
-  knotc zone-set "$ZONE" "$SUBNAME" 3600 NS "$NS"
-  keymgr $ZONE. ds | cut -d ' ' -f 3- | while read -r DS
+  knotc zone-begin "$PARENT"
+  knotc zone-set "$PARENT" "$SUBNAME" 3600 NS "$NS"
+  keymgr "$PARENT". ds | cut -d ' ' -f 3- | while read -r DS
   do
-    echo knotc zone-set "$ZONE" "$SUBNAME" 3600 DS $DS
-    knotc zone-set "$ZONE" "$SUBNAME" 3600 DS $DS
+    echo knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
+    knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
   done
-  knotc zone-commit "$ZONE"
+  knotc zone-commit "$PARENT"
 }
 
-manually_add_ds() {
+delegate_manually() {
   ZONE=$1
   echo "FURTHER ACTION REQUIRED: Add DS records for parent of $ZONE:"
   echo "@@@@"
@@ -96,14 +96,14 @@ keysizes() {
     echo 384
     ;;
   ed25519)
-    echo 256 384
+    echo 256
     ;;
   esac
 }
 
 echo "Creating test zone parent"
 create_zone "${DOMAIN}" "rsasha256" "2048"
-manually_add_ds "$DOMAIN"
+delegate_manually "$DOMAIN"
 
 for ALGORITHM in rsasha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519; do
   KEYSIZES=$(keysizes $ALGORITHM)
