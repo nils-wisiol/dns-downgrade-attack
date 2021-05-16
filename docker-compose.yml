@@ -7,6 +7,7 @@ services:
     - ns_storage:/storage
     - ns_rundir:/rundir
     - ./ns/config:/config
+    - ./addagilezone.sh:/root/bin/addagilezone.sh
     ports:
     - 5301:53/udp
     - 5301:53/tcp
