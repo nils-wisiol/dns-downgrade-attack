@@ -30,6 +30,7 @@ create_zone() {
   fi
   knotc zone-begin "$ZONE"
   knotc zone-set "$ZONE" @ 7200 SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 3600
+  knotc zone-set "$ZONE" @ 3600 NS "$NS."
   knotc zone-set "$ZONE" @ 3600 A 127.0.0.1
   knotc zone-set "$ZONE" @ 3600 AAAA ::1
   knotc zone-set "$ZONE" @ 3600 TXT "research test zone"
@@ -41,7 +42,7 @@ delegate() {
   PARENT=$2
   echo "Adding NS and DS for $SUBNAME.$PARENT to $PARENT"
   knotc zone-begin "$PARENT"
-  knotc zone-set "$PARENT" "$SUBNAME" 3600 NS "$NS"
+  knotc zone-set "$PARENT" "$SUBNAME" 3600 NS "$NS."
   keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
   do
     echo knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
