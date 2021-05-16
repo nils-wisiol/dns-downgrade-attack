@@ -15,14 +15,25 @@ To run the DNS server, clone this repository and run it using
 docker-compose up -d
 ```
 
-The DNS is empty, so add a zone using
+### "Agile" DNS Zones
+
+An "agile" DNS Zone that is signed with many different types of ciphers can be added by calling
 
 ```shell
-./addzone.sh your.zone.example.com
+docker-compose exec ns /root/bin/addagilezone.sh your.zone.example.com hostname.of.your.ns.com
 ```
 
 This will add the zone to knot and sign it using many algorithms.
 It also displays the DS records that need to be configured in the parent zone to establish the chain of trust.
+
+### Test DNS Zone
+
+To add many zones using *one* signature algorithm each, run
+
+```shell
+docker-compose exec ns /root/bin/addtestzones.sh parent.zone.com hostname.of.your.ns.com
+```
+
 
 ## Query
 
