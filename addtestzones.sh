@@ -42,7 +42,7 @@ delegate() {
   echo "Adding NS and DS for $SUBNAME.$PARENT to $PARENT"
   knotc zone-begin "$PARENT"
   knotc zone-set "$PARENT" "$SUBNAME" 3600 NS "$NS"
-  keymgr "$PARENT". ds | cut -d ' ' -f 3- | while read -r DS
+  keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
   do
     echo knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
     knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
