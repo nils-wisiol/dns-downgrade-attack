@@ -16,6 +16,7 @@ services:
     command: knotd
     networks:
     - backend
+    restart: unless-stopped
   fns:
     build: fns
     volumes:
@@ -29,6 +30,7 @@ services:
     networks:
     - backend
     command: python3 /fns/fns.py
+    restart: unless-stopped
 
 networks:
   backend:
