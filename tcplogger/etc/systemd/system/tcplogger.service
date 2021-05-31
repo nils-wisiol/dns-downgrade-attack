@@ -1,0 +1,10 @@
+[Unit]
+Description=Logging of network interface traffic
+[Service]
+Type=forking
+ExecStart=/usr/bin/tcplogger start
+ExecStop=/usr/bin/tcplogger stop
+Restart=on-abnormal
+[Install]
+WantedBy=multi-user.target
+

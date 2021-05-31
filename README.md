@@ -67,3 +67,14 @@ dig SOA +dnssec @yourns.example.com your.zone.example.com +ednsopt=14:0d05
 ```
 
 This will only transmit signatures of type `0x0d = 13` (ECDSAP256SHA256) and `0x05 = 5` (RSASHA1).
+
+## Traffic Capture
+
+This repo contains a systemd service that captures all port 53 traffic on eth0.
+It can be installed using
+
+```shell
+cp -rav tcplogger/* /
+```
+
+Captured traffic will be put in `/var/log/tcplogger` and logrotated.
