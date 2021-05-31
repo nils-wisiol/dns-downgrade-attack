@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 # Don't concern yourself it it was lo that came up
-if [ "$IFACE" != eth0 ]; then
+if [ "$IFACE" = lo ]; then
 	exit 0
 fi
 
