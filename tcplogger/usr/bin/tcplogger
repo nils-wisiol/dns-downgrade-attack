@@ -9,7 +9,7 @@ case $1 in
     for i in $(ls /sys/class/net | grep 'eth\|ens\|eno'); do
       touch "/var/log/tcplogger/$i.log"
       chmod 640 "/var/log/tcplogger/$i.log"
-      tcpdump -i "$i" -s 0 -w "/var/log/tcplogger/$i.log" -f port 53 &
+      tcpdump -i "$i" -s 0 -w "/var/log/tcplogger/$i.log" port 53 &
       echo "$i" >> /var/log/tcplogger/interfaces
     done
     ;;
