@@ -4,6 +4,7 @@ services:
   ns:
     image: cznic/knot:latest
     volumes:
+    - ./keys:/fixed-keys
     - ns_storage:/storage
     - ns_rundir:/rundir
     - ./ns/config:/config

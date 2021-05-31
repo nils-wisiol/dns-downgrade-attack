@@ -36,6 +36,9 @@ docker-compose exec ns /root/bin/addtestzones.sh parent.zone.com 1.2.3.4 2.3.4.5
 
 where 1.2.3.4 and 2.3.4.5 are the IP addresses of the exactly two authoritative name servers.
 
+Keys will be stored in the `keys/` directory. Any already present keys will be imported and used.
+Naming schema is `$ZONE.key.pem`.
+
 
 ## Query
 

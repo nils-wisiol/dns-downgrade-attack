@@ -16,7 +16,13 @@ create_zone() {
   KEYSIZE=$3
   if [[ -n $ALGORITHM ]]; then
     echo "Creating secure zone $ZONE"
-    keymgr "$ZONE" generate algorithm="${ALGORITHM}" size="$KEYSIZE" ksk=true zsk=true
+    KEYFILE=/fixed-keys/$ZONE.key.pem
+    if [[ ! -f $KEYFILE ]]; then
+      KEYID=$(keymgr "$ZONE" generate algorithm="${ALGORITHM}" size="$KEYSIZE" ksk=true zsk=true)
+      cp "/storage/keys/keys/$KEYID.pem" "$KEYFILE"
+    else
+      keymgr "$ZONE" import-pem "$KEYFILE" algorithm="${ALGORITHM}" size="$KEYSIZE" ksk=true zsk=true
+    fi
     knotc conf-begin
     knotc conf-set zone[$ZONE]
     knotc conf-set zone[$ZONE].dnssec-policy default
