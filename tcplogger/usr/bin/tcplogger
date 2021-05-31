@@ -4,19 +4,22 @@ case $1 in
   start)
     mkdir -p /var/log/tcplogger
     chmod 750 /var/log/tcplogger
-    > /var/log/tcplogger/interfaces
+    touch /var/log/tcplogger/interfaces
     chmod 640 /var/log/tcplogger/interfaces
-    for i in `ls /sys/class/net | grep 'eth\|ens\|eno'`; do
-      touch /var/log/tcplogger/$i.log
-      chmod 640 /var/log/tcplogger/$i.log
-      tcpdump -i $i -s 0 -w /var/log/tcplogger/$i.log -f port 53 &
-      echo $i >> /var/log/tcplogger/interfaces
+    for i in $(ls /sys/class/net | grep 'eth\|ens\|eno'); do
+      touch "/var/log/tcplogger/$i.log"
+      chmod 640 "/var/log/tcplogger/$i.log"
+      tcpdump -i "$i" -s 0 -w "/var/log/tcplogger/$i.log" -f port 53 &
+      echo "$i" >> /var/log/tcplogger/interfaces
     done
     ;;
   stop)
-    for i in `ls /sys/class/net | grep 'eth\|ens\|eno'`; do
-      gzip -c /var/log/tcplogger/$i.log > /var/log/tcplogger/$i.log-killed-$(date +%Y%M%d%H%M).gz
-      kill $(ps -ef | grep $i | grep -v grep | awk '{print $2}')
+    for i in $(ls /sys/class/net | grep 'eth\|ens\|eno'); do
+      gzip -c "/var/log/tcplogger/$i.log" > "/var/log/tcplogger/$i.log-killed-$(date +%Y%M%d%H%M).gz"
+      PID=$(ps -ef | grep "$i" | grep -v grep | awk '{print $2}')
+      if [ -n "$PID" ]; then
+        kill "$PID"
+      fi
     done
     ;;
 esac
