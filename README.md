@@ -39,6 +39,17 @@ where 1.2.3.4 and 2.3.4.5 are the IP addresses of the exactly two authoritative 
 Keys will be stored in the `keys/` directory. Any already present keys will be imported and used.
 Naming schema is `$ZONE.key.pem`.
 
+To synchronize keys, rsync can be used. Move keys from local to server:
+
+```shell
+rsync -rtP keys/ ns1.example.com:adnssec/keys/
+```
+
+Move from server to local:
+
+```shell
+rsync -rtP ns1.example.com:adnssec/keys/ keys/
+```
 
 ## Query
 
