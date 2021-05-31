@@ -2,10 +2,11 @@
 set -e
 
 DOMAIN=$1
-NS=$2
+NS1=$2
+NS2=$3
 
 if [[ -z "$DOMAIN" ]]; then
-  echo "Usage: ./addtestzones.sh [parent domain]"
+  echo "Usage: ./addtestzones.sh [parent domain] [ns1 A record] [ns2 A record]"
   exit 1
 fi
 
@@ -30,7 +31,10 @@ create_zone() {
   fi
   knotc zone-begin "$ZONE"
   knotc zone-set "$ZONE" @ 7200 SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 3600
-  knotc zone-set "$ZONE" @ 3600 NS "$NS."
+  knotc zone-set "$ZONE" @ 3600 NS "ns1.$ZONE."
+  knotc zone-set "$ZONE" @ 3600 NS "ns2.$ZONE."
+  knotc zone-set "$ZONE" ns1 3600 A "$NS1"
+  knotc zone-set "$ZONE" ns2 3600 A "$NS2"
   knotc zone-set "$ZONE" @ 3600 A 127.0.0.1
   knotc zone-set "$ZONE" @ 3600 AAAA ::1
   knotc zone-set "$ZONE" @ 3600 TXT "research test zone"

@@ -31,8 +31,10 @@ It also displays the DS records that need to be configured in the parent zone to
 To add many zones using *one* signature algorithm each, run
 
 ```shell
-docker-compose exec ns /root/bin/addtestzones.sh parent.zone.com hostname.of.your.ns.com
+docker-compose exec ns /root/bin/addtestzones.sh parent.zone.com 1.2.3.4 2.3.4.5
 ```
+
+where 1.2.3.4 and 2.3.4.5 are the IP addresses of the exactly two authoritative name servers.
 
 
 ## Query
