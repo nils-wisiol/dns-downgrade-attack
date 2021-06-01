@@ -54,13 +54,14 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     logger.info(f"Received upstream answer for {q.id}, {host}:{port} ...")
     logger.info(indent(a.to_text()))
 
-    accept_algorithm = {}  # all
-    for opt in next(iter(q.opt.items)).options:
-        if opt.otype == 14:  # AC OPT option
-            accept_algorithm = {b for b in opt.data}
-    if accept_algorithm:
-        logger.info(f"Filtering for signatures to match {accept_algorithm}")
-        a.answer = filter_signatures(a.answer, accept_algorithm)
+    if q.opt:
+        accept_algorithm = {}  # all
+        for opt in next(iter(q.opt.items)).options:
+            if opt.otype == 14:  # AC OPT option
+                accept_algorithm = {b for b in opt.data}
+        if accept_algorithm:
+            logger.info(f"Filtering for signatures to match {accept_algorithm}")
+            a.answer = filter_signatures(a.answer, accept_algorithm)
 
     logger.info(f"Forwarding answer {q.id} for {host}:{port} ...")
     logger.info(indent(a.to_text()))
