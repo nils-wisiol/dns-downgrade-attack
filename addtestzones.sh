@@ -44,6 +44,9 @@ create_zone() {
   knotc zone-set "$ZONE" @ 3600 A 127.0.0.1
   knotc zone-set "$ZONE" @ 3600 AAAA ::1
   knotc zone-set "$ZONE" @ 3600 TXT "research test zone"
+  knotc zone-set "$ZONE" '*' 3600 A 127.0.0.1
+  knotc zone-set "$ZONE" '*' 3600 AAAA ::1
+  knotc zone-set "$ZONE" '*' 3600 TXT "research test zone"
   knotc zone-commit "$ZONE"
 }
 
