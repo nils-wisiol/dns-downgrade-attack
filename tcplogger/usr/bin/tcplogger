@@ -7,7 +7,7 @@ case $1 in
     touch /var/log/tcplogger/interfaces
     chmod 640 /var/log/tcplogger/interfaces
     for i in $(ls /sys/class/net | grep 'eth\|ens\|eno\|br'); do
-      if [ "$(cat /sys/class/net/eth0/operstate)" = "up" ]; then
+      if [ "$(cat /sys/class/net/$i/operstate)" = "up" ]; then
         FILE="/var/log/tcplogger/$i-$(date +%Y%m%d%H%M%S).pcap"
         touch "$FILE"
         chmod 640 "$FILE"
