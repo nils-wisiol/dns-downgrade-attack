@@ -6,7 +6,7 @@ case $1 in
     chmod 750 /var/log/tcplogger
     touch /var/log/tcplogger/interfaces
     chmod 640 /var/log/tcplogger/interfaces
-    for i in $(ls /sys/class/net | grep 'eth\|ens\|eno'); do
+    for i in $(ls /sys/class/net | grep 'eth\|ens\|eno\|br'); do
       FILE="/var/log/tcplogger/$i-$(date +%Y%m%d%H%M%S).pcap"
       touch "$FILE"
       chmod 640 "$FILE"
@@ -15,7 +15,7 @@ case $1 in
     done
     ;;
   stop)
-    for i in $(ls /sys/class/net | grep 'eth\|ens\|eno'); do
+    for i in $(ls /sys/class/net | grep 'eth\|ens\|eno\|br'); do
       PID=$(ps -ef | grep "$i" | grep -v grep | awk '{print $2}')
       if [ -n "$PID" ]; then
         kill "$PID"
