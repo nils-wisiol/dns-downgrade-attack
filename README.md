@@ -71,10 +71,11 @@ This will only transmit signatures of type `0x0d = 13` (ECDSAP256SHA256) and `0x
 ## Traffic Capture
 
 This repo contains a systemd service that captures all port 53 traffic on eth0.
-It can be installed using
+It can be installed and enabled using
 
 ```shell
 cp -rav tcplogger/* /
+systemctl enable tcplogger
 ```
 
 Captured traffic will be put in `/var/log/tcplogger` and logrotated.
