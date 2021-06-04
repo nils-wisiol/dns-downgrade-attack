@@ -15,6 +15,25 @@ create_zone() {
   ZONE=$1
   ALGORITHM=$2
   KEYSIZE=$3
+  NSEC=$4
+  knotc conf-begin
+  knotc conf-set "zone[$ZONE]"
+  knotc conf-set "zone[$ZONE].dnssec-signing" off
+  knotc conf-commit
+
+  knotc zone-begin "$ZONE"
+  knotc zone-set "$ZONE" @ 7200 SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 3600
+  knotc zone-set "$ZONE" @ 3600 NS "ns1.$ZONE."
+  knotc zone-set "$ZONE" @ 3600 NS "ns2.$ZONE."
+  knotc zone-set "$ZONE" ns1 3600 A "$NS1"
+  knotc zone-set "$ZONE" ns2 3600 A "$NS2"
+  knotc zone-set "$ZONE" @ 3600 A 127.0.0.1
+  knotc zone-set "$ZONE" @ 3600 AAAA ::1
+  knotc zone-set "$ZONE" @ 3600 TXT "research test zone"
+  knotc zone-set "$ZONE" '*' 3600 A 127.0.0.1
+  knotc zone-set "$ZONE" '*' 3600 AAAA ::1
+  knotc zone-set "$ZONE" '*' 3600 TXT "research test zone"
+  knotc zone-commit "$ZONE"
   if [[ -n $ALGORITHM ]]; then
     echo "Creating secure zone $ZONE"
     KEYFILE=/fixed-keys/$ZONE.key.pem
@@ -29,31 +48,14 @@ create_zone() {
     else
       keymgr "$ZONE" import-pem "$KEYFILE" algorithm="${ALGORITHM1}" size="$KEYSIZE" ksk=true zsk=true
     fi
+    keymgr "$ZONE" nsec3-salt
     knotc conf-begin
-    knotc conf-set "zone[$ZONE]"
-    knotc conf-set "zone[$ZONE].dnssec-policy" default
+    knotc conf-set "zone[$ZONE].dnssec-policy" "nsec$NSEC"
     knotc conf-set "zone[$ZONE].dnssec-signing" on
     knotc conf-commit
   else
     echo "Creating insecure zone $ZONE"
-    knotc conf-begin
-    knotc conf-set "zone[$ZONE]"
-    knotc conf-set "zone[$ZONE].dnssec-signing" off
-    knotc conf-commit
   fi
-  knotc zone-begin "$ZONE"
-  knotc zone-set "$ZONE" @ 7200 SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 3600
-  knotc zone-set "$ZONE" @ 3600 NS "ns1.$ZONE."
-  knotc zone-set "$ZONE" @ 3600 NS "ns2.$ZONE."
-  knotc zone-set "$ZONE" ns1 3600 A "$NS1"
-  knotc zone-set "$ZONE" ns2 3600 A "$NS2"
-  knotc zone-set "$ZONE" @ 3600 A 127.0.0.1
-  knotc zone-set "$ZONE" @ 3600 AAAA ::1
-  knotc zone-set "$ZONE" @ 3600 TXT "research test zone"
-  knotc zone-set "$ZONE" '*' 3600 A 127.0.0.1
-  knotc zone-set "$ZONE" '*' 3600 AAAA ::1
-  knotc zone-set "$ZONE" '*' 3600 TXT "research test zone"
-  knotc zone-commit "$ZONE"
 }
 
 delegate() {
@@ -85,9 +87,10 @@ created_signedok_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
   DOMAIN=$3
-  SUBNAME="${ALGORITHM}-${KEYSIZE}-signedok"
+  NSEC=$4
+  SUBNAME="${ALGORITHM}-${KEYSIZE}-${NSEC}-signedok"
   ZONE="${SUBNAME}.${DOMAIN}"
-  create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE"
+  create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE" "$NSEC"
   delegate "$SUBNAME" "$DOMAIN" securely
 }
 
@@ -95,9 +98,9 @@ created_signedbrokennods_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
   DOMAIN=$3
-  SUBNAME="${ALGORITHM}-${KEYSIZE}-signedbrokennods"
+  SUBNAME="${ALGORITHM}-${KEYSIZE}-${NSEC}-signedbrokennods"
   ZONE="${SUBNAME}.${DOMAIN}"
-  create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE"
+  create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE" "$NSEC"
   delegate "$SUBNAME" "$DOMAIN"
 }
 
@@ -132,14 +135,16 @@ keysizes() {
 }
 
 echo "Creating test zone parent"
-create_zone "${DOMAIN}" "rsasha256" "2048"
+create_zone "${DOMAIN}" "rsasha256" "2048" 1
 delegate_manually "$DOMAIN"
 
-for ALGORITHM in rsasha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519 ed448; do
+for ALGORITHM in rsasha1 rsasha1nsec3sha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519 ed448; do
   KEYSIZES=$(keysizes $ALGORITHM)
   for KEYSIZE in $KEYSIZES; do
-    created_signedok_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN"
-    created_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN"
+    for NSEC in 1 3; do
+      created_signedok_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
+      created_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
+    done
   done
 done
 created_unsigned_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN"

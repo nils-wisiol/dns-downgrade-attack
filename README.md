@@ -51,6 +51,11 @@ Move from server to local:
 rsync -rtP ns1.example.com:adnssec/keys/ keys/
 ```
 
+Test zones are created for a number of different algorithms, key sizes, NSEC versions, and delegation status.
+
+For NSEC3, the recommendations of https://datatracker.ietf.org/doc/html/draft-hardaker-dnsop-nsec3-guidance are used,
+i.e. no salt is used, and the number of iterations is set to 1.
+
 The test zones created use algorithms according to the recommendations of RFC 8624.
 All algorithms that are "MUST" or "RECOMMENDED" for validation are included.
 The key sizes for RSA-based algorithms vary, the key sizes for elliptic curve methods are fixed.
