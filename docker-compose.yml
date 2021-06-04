@@ -10,10 +10,11 @@ services:
     - ./ns/config:/config
     - ./addtestzones.sh:/root/bin/addtestzones.sh
     - ./addagilezone.sh:/root/bin/addagilezone.sh
+    - ./ns/entrypoint.sh:/entrypoint.sh
     ports:
     - 5301:53/udp
     - 5301:53/tcp
-    command: knotd
+    command: /entrypoint.sh
     networks:
     - backend
     restart: unless-stopped

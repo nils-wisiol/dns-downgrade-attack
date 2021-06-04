@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+set -o xtrace
 
 DOMAIN=$1
 NS1=$2
@@ -24,15 +25,15 @@ create_zone() {
       keymgr "$ZONE" import-pem "$KEYFILE" algorithm="${ALGORITHM}" size="$KEYSIZE" ksk=true zsk=true
     fi
     knotc conf-begin
-    knotc conf-set zone[$ZONE]
-    knotc conf-set zone[$ZONE].dnssec-policy default
-    knotc conf-set zone[$ZONE].dnssec-signing on
+    knotc conf-set "zone[$ZONE]"
+    knotc conf-set "zone[$ZONE].dnssec-policy" default
+    knotc conf-set "zone[$ZONE].dnssec-signing" on
     knotc conf-commit
   else
     echo "Creating insecure zone $ZONE"
     knotc conf-begin
-    knotc conf-set zone[$ZONE]
-    knotc conf-set zone[$ZONE].dnssec-signing off
+    knotc conf-set "zone[$ZONE]"
+    knotc conf-set "zone[$ZONE].dnssec-signing" off
     knotc conf-commit
   fi
   knotc zone-begin "$ZONE"
