@@ -2,7 +2,8 @@ version: '3.3'
 
 services:
   ns:
-    image: cznic/knot:latest
+    #image: cznic/knot:latest  # does not support ed448
+    build: knot-dns
     volumes:
     - ./keys:/fixed-keys
     - ns_storage:/storage

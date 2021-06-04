@@ -1,0 +1,3 @@
+[submodule "knot-dns"]
+	path = knot-dns
+	url = https://gitlab.nic.cz/knot/knot-dns.git

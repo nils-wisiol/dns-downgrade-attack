@@ -18,11 +18,16 @@ create_zone() {
   if [[ -n $ALGORITHM ]]; then
     echo "Creating secure zone $ZONE"
     KEYFILE=/fixed-keys/$ZONE.key.pem
+    ALGORITHM1=$ALGORITHM
+    if [[ $ALGORITHM == "ed448" ]]; then
+      # using 16 instead of ed448 (https://gitlab.nic.cz/knot/knot-dns/-/issues/739)
+      ALGORITHM1=16
+    fi
     if [[ ! -f $KEYFILE ]]; then
-      KEYID=$(keymgr "$ZONE" generate algorithm="${ALGORITHM}" size="$KEYSIZE" ksk=true zsk=true)
+      KEYID=$(keymgr "$ZONE" generate algorithm="${ALGORITHM1}" size="$KEYSIZE" ksk=true zsk=true)
       cp "/storage/keys/keys/$KEYID.pem" "$KEYFILE"
     else
-      keymgr "$ZONE" import-pem "$KEYFILE" algorithm="${ALGORITHM}" size="$KEYSIZE" ksk=true zsk=true
+      keymgr "$ZONE" import-pem "$KEYFILE" algorithm="${ALGORITHM1}" size="$KEYSIZE" ksk=true zsk=true
     fi
     knotc conf-begin
     knotc conf-set "zone[$ZONE]"
@@ -106,9 +111,10 @@ created_unsigned_zone() {
 }
 
 keysizes() {
+  # for allowed key sizes, check https://gitlab.nic.cz/knot/knot-dns/-/blob/master/src/libdnssec/key/algorithm.c#L33
   case $1 in
   rsasha*)
-    echo 1024 2048 4096
+    echo 1024 1871 2048 4096  # All 1024 <= x <= 4096 are allowed by knot
     ;;
   ecdsap256*)
     echo 256
@@ -119,6 +125,9 @@ keysizes() {
   ed25519)
     echo 256
     ;;
+  ed448)
+    echo 456
+    ;;
   esac
 }
 
@@ -126,7 +135,7 @@ echo "Creating test zone parent"
 create_zone "${DOMAIN}" "rsasha256" "2048"
 delegate_manually "$DOMAIN"
 
-for ALGORITHM in rsasha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519; do
+for ALGORITHM in rsasha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519 ed448; do
   KEYSIZES=$(keysizes $ALGORITHM)
   for KEYSIZE in $KEYSIZES; do
     created_signedok_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN"
