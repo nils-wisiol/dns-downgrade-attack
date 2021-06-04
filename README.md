@@ -53,6 +53,10 @@ rsync -rtP ns1.example.com:adnssec/keys/ keys/
 
 Test zones are created for a number of different algorithms, key sizes, NSEC versions, and delegation status.
 
+For each combination of algorithm, key size, and NSEC version, correctly delegated and insecurely delegated
+(i.e., no DS records at the parent zone) are created.
+Also, an insecure delegation (i.e., an unsigned child zone) is created.
+
 For NSEC3, the recommendations of https://datatracker.ietf.org/doc/html/draft-hardaker-dnsop-nsec3-guidance are used,
 i.e. no salt is used, and the number of iterations is set to 1.
 
@@ -76,6 +80,23 @@ used to sign record sets.
 | 14     | ECDSAP384SHA384    | MAY             | RECOMMENDED       | 384
 | 15     | ED25519            | RECOMMENDED     | RECOMMENDED       | 256
 | 16     | ED448              | MAY             | RECOMMENDED       | 456
+
+The zone names for signed zones are:
+
+    $ALGORITHM-$KEYSIZE-$NSEC-$STATUS.$PARENT
+
+where
+
+- `$ALGORITHM` is one of `rsasha1`, `rsasha1nsec3sha1`, `rsasha256`, `rsasha512`, `ecdsap256sha256`, `ecdsap384sha384`,
+   `ed25519`, `ed448`;
+- `$KEYSIZE` is as indicated in above table;
+- `$NSEC` is either 1 or 3;
+- `$STATUS` is one of `signedok`, `signedbrokennods`;
+- `$PARENT` is the parent zone name as given on the command line.
+
+The zone name for the unsigned child zone is:
+
+    unsigned.${PARENT}
 
 ## Query
 
