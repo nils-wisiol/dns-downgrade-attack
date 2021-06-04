@@ -27,11 +27,11 @@ create_zone() {
   knotc zone-set "$ZONE" @ 3600 NS "ns2.$ZONE."
   knotc zone-set "$ZONE" ns1 3600 A "$NS1"
   knotc zone-set "$ZONE" ns2 3600 A "$NS2"
-  knotc zone-set "$ZONE" @ 3600 A 127.0.0.1
-  knotc zone-set "$ZONE" @ 3600 AAAA ::1
+  knotc zone-set "$ZONE" @ 3600 A 8.8.8.8
+  knotc zone-set "$ZONE" @ 3600 AAAA 2001:4860:4860::8888
   knotc zone-set "$ZONE" @ 3600 TXT "research test zone"
-  knotc zone-set "$ZONE" '*' 3600 A 127.0.0.1
-  knotc zone-set "$ZONE" '*' 3600 AAAA ::1
+  knotc zone-set "$ZONE" '*' 3600 A 8.8.8.8
+  knotc zone-set "$ZONE" '*' 3600 AAAA 2001:4860:4860::8888
   knotc zone-set "$ZONE" '*' 3600 TXT "research test zone"
   knotc zone-commit "$ZONE"
   if [[ -n $ALGORITHM ]]; then
