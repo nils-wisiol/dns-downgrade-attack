@@ -103,6 +103,21 @@ created_signedbrokennods_zone() {
   delegate "$SUBNAME" "$DOMAIN"
 }
 
+created_signedbrokenwrongds_zone() {
+  ALGORITHM=$1
+  KEYSIZE=$2
+  DOMAIN=$3
+  SUBNAME="${ALGORITHM}-${KEYSIZE}-${NSEC}-signedbrokenwrongds"
+  ZONE="${SUBNAME}.${DOMAIN}"
+  create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE" "$NSEC"
+  delegate "$SUBNAME" "$DOMAIN"
+  # delegate some unrelated key
+  knotc zone-begin "$DOMAIN"
+  knotc zone-set "$DOMAIN" "$SUBNAME" 3600 DS "25222 8 2 9740bf5bcc618af66c764d51522e5fd3913a187d09d89d03de079eef43152990"
+  knotc zone-set "$DOMAIN" "$SUBNAME" 3600 DS "25222 8 4 d9a75c1579df7939b3c2e5417c08d0c91e017c7912f86b253a9407f561d8e67d732f8f5c051a4d416b22c598453b281f"
+  knotc zone-commit "$DOMAIN"
+}
+
 created_unsigned_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
@@ -143,6 +158,7 @@ for ALGORITHM in rsasha1 rsasha1nsec3sha1 rsasha256 rsasha512 ecdsap256sha256 ec
     for NSEC in 1 3; do
       created_signedok_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
       created_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
+      created_signedbrokenwrongds_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
     done
   done
 done
