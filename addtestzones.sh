@@ -68,7 +68,6 @@ delegate() {
   if [[ -n "$SECURE" ]]; then
     keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
     do
-      echo knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
       knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
     done
   fi
