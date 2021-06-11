@@ -1,9 +1,0 @@
-/var/log/tcplogger/*.pcap {
-  daily
-  minsize 10M
-  copytruncate
-  create 750 root root
-  dateext
-  rotate 12
-  compress
-}
