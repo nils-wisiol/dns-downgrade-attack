@@ -5,6 +5,7 @@ set -o xtrace
 DOMAIN=$1
 NS1=$2
 NS2=$3
+TTL=0
 
 if [[ -z "$DOMAIN" ]]; then
   echo "Usage: ./addtestzones.sh [parent domain] [ns1 A record] [ns2 A record]"
@@ -22,17 +23,17 @@ create_zone() {
   knotc conf-commit
 
   knotc zone-begin "$ZONE"
-  knotc zone-set "$ZONE" @ 7200 SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 3600
-  knotc zone-set "$ZONE" @ 3600 NS "ns1.$ZONE."
-  knotc zone-set "$ZONE" @ 3600 NS "ns2.$ZONE."
-  knotc zone-set "$ZONE" ns1 3600 A "$NS1"
-  knotc zone-set "$ZONE" ns2 3600 A "$NS2"
-  knotc zone-set "$ZONE" @ 3600 A 8.8.8.8
-  knotc zone-set "$ZONE" @ 3600 AAAA 2001:4860:4860::8888
-  knotc zone-set "$ZONE" @ 3600 TXT "research test zone"
-  knotc zone-set "$ZONE" '*' 3600 A 8.8.8.8
-  knotc zone-set "$ZONE" '*' 3600 AAAA 2001:4860:4860::8888
-  knotc zone-set "$ZONE" '*' 3600 TXT "research test zone"
+  knotc zone-set "$ZONE" @ $TTL SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 $TTL
+  knotc zone-set "$ZONE" @ $TTL NS "ns1.$ZONE."
+  knotc zone-set "$ZONE" @ $TTL NS "ns2.$ZONE."
+  knotc zone-set "$ZONE" ns1 $TTL A "$NS1"
+  knotc zone-set "$ZONE" ns2 $TTL A "$NS2"
+  knotc zone-set "$ZONE" @ $TTL A 8.8.8.8
+  knotc zone-set "$ZONE" @ $TTL AAAA 2001:4860:4860::8888
+  knotc zone-set "$ZONE" @ $TTL TXT "research test zone"
+  knotc zone-set "$ZONE" '*' $TTL A 8.8.8.8
+  knotc zone-set "$ZONE" '*' $TTL AAAA 2001:4860:4860::8888
+  knotc zone-set "$ZONE" '*' $TTL TXT "research test zone"
   knotc zone-commit "$ZONE"
   if [[ -n $ALGORITHM ]]; then
     echo "Creating secure zone $ZONE"
@@ -64,11 +65,11 @@ delegate() {
   SECURE=$3
   echo "Adding NS and DS for $SUBNAME.$PARENT to $PARENT"
   knotc zone-begin "$PARENT"
-  knotc zone-set "$PARENT" "$SUBNAME" 3600 NS "$NS."
+  knotc zone-set "$PARENT" "$SUBNAME" $TTL NS "$NS."
   if [[ -n "$SECURE" ]]; then
     keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
     do
-      knotc zone-set "$PARENT" "$SUBNAME" 3600 DS $DS
+      knotc zone-set "$PARENT" "$SUBNAME" $TTL DS $DS
     done
   fi
   knotc zone-commit "$PARENT"
@@ -113,8 +114,8 @@ created_signedbrokenwrongds_zone() {
   delegate "$SUBNAME" "$DOMAIN"
   # delegate some unrelated key
   knotc zone-begin "$DOMAIN"
-  knotc zone-set "$DOMAIN" "$SUBNAME" 3600 DS "25222 8 2 9740bf5bcc618af66c764d51522e5fd3913a187d09d89d03de079eef43152990"
-  knotc zone-set "$DOMAIN" "$SUBNAME" 3600 DS "25222 8 4 d9a75c1579df7939b3c2e5417c08d0c91e017c7912f86b253a9407f561d8e67d732f8f5c051a4d416b22c598453b281f"
+  knotc zone-set "$DOMAIN" "$SUBNAME" $TTL DS "25222 8 2 9740bf5bcc618af66c764d51522e5fd3913a187d09d89d03de079eef43152990"
+  knotc zone-set "$DOMAIN" "$SUBNAME" $TTL DS "25222 8 4 d9a75c1579df7939b3c2e5417c08d0c91e017c7912f86b253a9407f561d8e67d732f8f5c051a4d416b22c598453b281f"
   knotc zone-commit "$DOMAIN"
 }
 
