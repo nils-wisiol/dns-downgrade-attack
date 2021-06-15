@@ -2,12 +2,13 @@
 set -e
 set -o xtrace
 
-DOMAIN=$1
+ROOT=$1
 NS1=$2
 NS2=$3
+LABELS=$4
 TTL=0
 
-if [[ -z "$DOMAIN" ]]; then
+if [[ -z "$ROOT" ]]; then
   echo "Usage: ./addtestzones.sh [parent domain] [ns1 A record] [ns2 A record]"
   exit 1
 fi
@@ -83,6 +84,13 @@ delegate_manually() {
   echo "@@@@"
 }
 
+created_label_zone() {
+  DOMAIN=$1
+  LABEL=$2
+  create_zone "$LABEL.$DOMAIN" "rsasha256" 2048 1
+  delegate "$LABEL" "$DOMAIN" securely
+}
+
 created_signedok_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
@@ -150,19 +158,29 @@ keysizes() {
 }
 
 echo "Creating test zone parent"
-create_zone "${DOMAIN}" "rsasha256" "2048" 1
-delegate_manually "$DOMAIN"
+create_zone "${ROOT}" "rsasha256" "2048" 1
+delegate_manually "$ROOT"
 
-for ALGORITHM in rsasha1 rsasha1nsec3sha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519 ed448; do
-  KEYSIZES=$(keysizes $ALGORITHM)
-  for KEYSIZE in $KEYSIZES; do
-    for NSEC in 1 3; do
-      created_signedok_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
-      created_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
-      created_signedbrokenwrongds_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN" "$NSEC"
+for ((LABEL_IDX=-1; LABEL_IDX<LABELS; LABEL_IDX++)); do
+  if [[ $LABEL_IDX -eq -1 ]]; then
+    LABEL=
+  else
+    LABEL=$(printf %x "$LABEL_IDX")
+    created_label_zone "$ROOT" "$LABEL"
+    LABEL=$LABEL.
+  fi
+  for ALGORITHM in rsasha1 rsasha1nsec3sha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519 ed448; do
+    KEYSIZES=$(keysizes $ALGORITHM)
+    for KEYSIZE in $KEYSIZES; do
+      for NSEC in 1 3; do
+        echo "DOMAIN: $LABEL$ROOT"
+        created_signedok_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+        created_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+        created_signedbrokenwrongds_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+      done
     done
   done
 done
-created_unsigned_zone "$ALGORITHM" "$KEYSIZE" "$DOMAIN"
+created_unsigned_zone "$ALGORITHM" "$KEYSIZE" "$ROOT"
 
 echo "finished successfully"
