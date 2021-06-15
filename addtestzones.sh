@@ -84,14 +84,14 @@ delegate_manually() {
   echo "@@@@"
 }
 
-created_label_zone() {
+create_label_zone() {
   DOMAIN=$1
   LABEL=$2
   create_zone "$LABEL.$DOMAIN" "rsasha256" 2048 1
   delegate "$LABEL" "$DOMAIN" securely
 }
 
-created_signedok_zone() {
+create_signedok_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
   DOMAIN=$3
@@ -102,7 +102,7 @@ created_signedok_zone() {
   delegate "$SUBNAME" "$DOMAIN" securely
 }
 
-created_signedbrokennods_zone() {
+create_signedbrokennods_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
   DOMAIN=$3
@@ -112,7 +112,7 @@ created_signedbrokennods_zone() {
   delegate "$SUBNAME" "$DOMAIN"
 }
 
-created_signedbrokenwrongds_zone() {
+create_signedbrokenwrongds_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
   DOMAIN=$3
@@ -127,7 +127,7 @@ created_signedbrokenwrongds_zone() {
   knotc zone-commit "$DOMAIN"
 }
 
-created_unsigned_zone() {
+create_unsigned_zone() {
   ALGORITHM=$1
   KEYSIZE=$2
   DOMAIN=$3
@@ -166,7 +166,7 @@ for ((LABEL_IDX=-1; LABEL_IDX<LABELS; LABEL_IDX++)); do
     LABEL=
   else
     LABEL=$(printf %x "$LABEL_IDX")
-    created_label_zone "$ROOT" "$LABEL"
+    create_label_zone "$ROOT" "$LABEL"
     LABEL=$LABEL.
   fi
   for ALGORITHM in rsasha1 rsasha1nsec3sha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519 ed448; do
@@ -174,13 +174,13 @@ for ((LABEL_IDX=-1; LABEL_IDX<LABELS; LABEL_IDX++)); do
     for KEYSIZE in $KEYSIZES; do
       for NSEC in 1 3; do
         echo "DOMAIN: $LABEL$ROOT"
-        created_signedok_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
-        created_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
-        created_signedbrokenwrongds_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+        create_signedok_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+        create_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+        create_signedbrokenwrongds_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
       done
     done
   done
 done
-created_unsigned_zone "$ALGORITHM" "$KEYSIZE" "$ROOT"
+create_unsigned_zone "$ALGORITHM" "$KEYSIZE" "$ROOT"
 
 echo "finished successfully"
