@@ -1,4 +1,4 @@
-version: '3.3'
+version: '3.7'
 
 services:
   ns:
@@ -33,6 +33,7 @@ services:
     - backend
     command: python3 /fns/fns.py
     restart: unless-stopped
+    init: true
 
 networks:
   backend:
