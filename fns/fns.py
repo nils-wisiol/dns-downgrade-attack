@@ -13,7 +13,8 @@ import dns.query
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-ns = socket.gethostbyname(os.environ.get('ADNSSEC_UPSTREAM_HOST', 'ns'))
+upstream_ns = socket.gethostbyname(os.environ.get('ADNSSEC_UPSTREAM_HOST', 'ns'))
+upstream_port = int(os.environ.get('ADNSSEC_UPSTREAM_PORT', 53))
 
 AC = 14  # our made-up edns flag for "agile cryptography"
 
@@ -50,7 +51,7 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     logger.info(f"Query {q.id} from {host}:{port}")
     logger.info(indent(q.to_text()))
     logger.info(f"Forwarding query {q.id} from {host}:{port} ...")
-    a = dns.query.tcp(q, where=ns, port=int(os.environ.get('ADNSSEC_UPSTREAM_PORT', 53)), timeout=1)
+    a = dns.query.tcp(q, where=upstream_ns, port=upstream_port, timeout=1)
     logger.info(f"Received upstream answer for {q.id}, {host}:{port} ...")
     logger.info(indent(a.to_text()))
 
