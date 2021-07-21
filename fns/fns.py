@@ -17,6 +17,7 @@ upstream_ns = socket.gethostbyname(os.environ.get('ADNSSEC_UPSTREAM_HOST', 'ns')
 upstream_port = int(os.environ.get('ADNSSEC_UPSTREAM_PORT', 53))
 
 AC = 14  # our made-up edns flag for "agile cryptography"
+MLAC = 15  # our made-up edns flag for machine-learning-based agile cryptography
 
 
 def indent(s, l=4):
@@ -41,6 +42,16 @@ def filter_signatures(answer: List[dns.rrset.RRset], algs: Set[int] = None):
     return filtered_answer
 
 
+def predict_supported_algorithm(m, a) -> Set[int]:
+    available_algorithms = set.intersection(*[
+        {rr.algorithm for rr in rrset.items}
+        for rrset in a.answer if rrset.rdtype == dns.rdatatype.RdataType.RRSIG
+    ])
+    selected_algorithms = {max(available_algorithms)}  # TODO employ trained classifier based on m
+    logger.info(f"Selected {selected_algorithms} out of available signature algorithms {available_algorithms}")
+    return selected_algorithms
+
+
 def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     logger.info("accepted packet")
     m = dns.message.from_wire(message)
@@ -60,6 +71,8 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
         for opt in next(iter(q.opt.items)).options:
             if opt.otype == AC:  # AC OPT option
                 accept_algorithm = {b for b in opt.data}
+            elif opt.otype == MLAC:
+                accept_algorithm = predict_supported_algorithm(m, a)
         if accept_algorithm:
             logger.info(f"Filtering for signatures to match {accept_algorithm}")
             a.answer = filter_signatures(a.answer, accept_algorithm)
