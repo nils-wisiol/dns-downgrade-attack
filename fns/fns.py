@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 ns = socket.gethostbyname(os.environ.get('ADNSSEC_UPSTREAM_HOST', 'ns'))
 
-AC = 0x4000  # our made-up edns flag for "agile cryptography"
+AC = 14  # our made-up edns flag for "agile cryptography"
 
 
 def indent(s, l=4):
@@ -57,7 +57,7 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     if q.opt:
         accept_algorithm = {}  # all
         for opt in next(iter(q.opt.items)).options:
-            if opt.otype == 14:  # AC OPT option
+            if opt.otype == AC:  # AC OPT option
                 accept_algorithm = {b for b in opt.data}
         if accept_algorithm:
             logger.info(f"Filtering for signatures to match {accept_algorithm}")
