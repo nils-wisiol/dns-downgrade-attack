@@ -1,1 +1,4 @@
 dnspython
+pandas
+scikit-learn
+scapy

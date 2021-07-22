@@ -3,12 +3,15 @@ import os
 import socket
 import socketserver
 import struct
-import traceback
 import threading
-from typing import List, Set, Optional
+import traceback
+from typing import List, Set, Optional, Dict
 
 import dns.message
 import dns.query
+import pandas as pd
+import sklearn as sk
+import sklearn.tree
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,6 +21,37 @@ upstream_port = int(os.environ.get('ADNSSEC_UPSTREAM_PORT', 53))
 
 AC = 14  # our made-up edns flag for "agile cryptography"
 MLAC = 15  # our made-up edns flag for machine-learning-based agile cryptography
+
+tree = {}
+ALGO_NAME = {
+    5: 'rsasha1',
+    7: 'rsasha1nsec3sha1',
+    8: 'rsasha256',
+    10: 'rsasha512',
+    13: 'ecdsap256sha256',
+    14: 'ecdsap384sha384',
+    15: 'ed25519',
+    16: 'ed448',
+}
+ALGO_NUM = {name: num for num, name in ALGO_NAME.items()}
+priority = [ALGO_NAME[key] for key in sorted(ALGO_NAME.keys())]
+features = []
+
+
+def train_classifiers() -> Dict[int, sk.tree.DecisionTreeClassifier]:
+    data = {
+        name: pd.read_pickle(f'/data/ml_data_{name}.pickle')
+        for name in ALGO_NAME.values()
+    }
+    features.extend(list(filter(lambda c: c.startswith('feature_dns'), next(iter(data.values())).keys())))
+    label = 'label_rcode0andad1'
+    logger.info(f"Using features {features} to predict label {label}")
+
+    for algo, d in data.items():
+        X = d[features]
+        Y = d[label]
+        tree[algo] = sk.tree.DecisionTreeClassifier()
+        tree[algo] = tree[algo].fit(X, Y)
 
 
 def indent(s, l=4):
@@ -42,12 +76,36 @@ def filter_signatures(answer: List[dns.rrset.RRset], algs: Set[int] = None):
     return filtered_answer
 
 
-def predict_supported_algorithm(m, a) -> Set[int]:
+def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.QueryMessage) -> Set[int]:
     available_algorithms = set.intersection(*[
-        {rr.algorithm for rr in rrset.items}
+        {int(rr.algorithm) for rr in rrset.items}
         for rrset in a.answer if rrset.rdtype == dns.rdatatype.RdataType.RRSIG
     ])
-    selected_algorithms = {max(available_algorithms)}  # TODO employ trained classifier based on m
+    edns_options = set().union({int(o.otype) for i in q.opt.items for o in i.options})
+    feature_values = [
+        q.flags & dns.flags.QR == 1,  # 'feature_dns_qr'
+        q.opcode(),  # 'feature_dns_opcode'
+        q.flags & dns.flags.AA == 1,  # 'feature_dns_aa'
+        q.flags & dns.flags.TC == 1,  # 'feature_dns_tc'
+        q.flags & dns.flags.RD == 1,  # 'feature_dns_rd'
+        q.flags & dns.flags.RA == 1,  # 'feature_dns_ra'
+        0,  # 'feature_dns_z'
+        q.flags & dns.flags.CD == 1,  # 'feature_dns_cd'
+        q.rcode(),  # 'feature_dns_rcode'
+        len(q.question),  # 'feature_dns_qdcount'
+        len(q.answer),  # 'feature_dns_ancount'
+        len(q.authority),  # 'feature_dns_nscount',
+        len(q.additional),  # 'feature_dns_arcount',
+        q.opt.rdclass,  # 'feature_dns_edns_requestors_udp_payload_size',
+        any(not (str(rr.name).islower() or str(rr.name).isupper()) for rr in q.question),
+        # feature_dns_edns_requestors_udp_payload_size
+        10 in edns_options,  # 'feature_dns_edns_cookie'
+        8 in edns_options,  # 'feature_dns_edns_subnet'
+    ]
+    logger.info(dict(zip(features, feature_values)))
+    supported_algorithms = {algo for algo in available_algorithms if  tree[ALGO_NAME[algo]].predict([feature_values])[0]}
+    logger.info(f"predicted support: {supported_algorithms}")
+    selected_algorithms = {max(supported_algorithms)}
     logger.info(f"Selected {selected_algorithms} out of available signature algorithms {available_algorithms}")
     return selected_algorithms
 
@@ -122,6 +180,10 @@ class TCPHandler(Handler):
 
 
 HOST, PORT = "0.0.0.0", 5300
+
+logger.info("Training classifiers ...")
+train_classifiers()
+logger.info("Training completed.")
 
 if __name__ == "__main__":
     threading.Thread(target=UDPHandler.serve).start()

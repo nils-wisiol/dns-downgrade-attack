@@ -23,6 +23,7 @@ services:
     build: fns
     volumes:
     - ./fns/:/fns
+    - ./analysis/:/data/
     ports:
     - 53:5300/udp
     - 53:5300/tcp
