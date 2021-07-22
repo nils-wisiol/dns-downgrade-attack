@@ -84,6 +84,8 @@ def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.Quer
     if not rrsig_algorithms:
         return set()
     available_algorithms = set.intersection(*rrsig_algorithms)
+    if len(available_algorithms) == 1:
+        return available_algorithms
     edns_options = set().union({int(o.otype) for i in q.opt.items for o in i.options}) if q.opt else set()
     feature_values = [
         q.flags & dns.flags.QR == 1,  # 'feature_dns_qr'
