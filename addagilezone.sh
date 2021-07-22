@@ -16,6 +16,7 @@ keymgr "$ZONE" generate zsk=true ksk=true algorithm=rsasha512 size=1024
 keymgr "$ZONE" generate zsk=true ksk=true algorithm=ecdsap256sha256 size=256
 keymgr "$ZONE" generate zsk=true ksk=true algorithm=ecdsap384sha384 size=384
 keymgr "$ZONE" generate zsk=true ksk=true algorithm=ed25519
+keymgr "$ZONE" generate zsk=true ksk=true algorithm=16
 
 
 echo "Setting up a minimalistic zone for $ZONE"
@@ -31,6 +32,9 @@ knotc zone-set "$ZONE" @ 3600 NS "$NS2."
 knotc zone-set "$ZONE" @ 3600 A 127.0.0.1
 knotc zone-set "$ZONE" @ 3600 AAAA ::1
 knotc zone-set "$ZONE" @ 3600 TXT "agility"
+knotc zone-set "$ZONE" "*" 3600 A 127.0.0.1
+knotc zone-set "$ZONE" "*" 3600 AAAA ::1
+knotc zone-set "$ZONE" "*" 3600 TXT "agility"
 knotc zone-commit "$ZONE"
 
 echo "Reloading zone"
