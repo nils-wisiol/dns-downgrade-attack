@@ -20,7 +20,7 @@ docker-compose up -d
 An "agile" DNS Zone that is signed with many different types of ciphers can be added by calling
 
 ```shell
-docker-compose exec ns /root/bin/addagilezone.sh your.zone.example.com hostname.of.your.ns.com
+docker-compose exec ns /root/bin/addagilezone.sh your.zone.example.com firstns.com secondns.org
 ```
 
 This will add the zone to knot and sign it using many algorithms.
