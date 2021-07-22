@@ -25,6 +25,7 @@ docker-compose exec ns /root/bin/addagilezone.sh your.zone.example.com firstns.c
 
 This will add the zone to knot and sign it using many algorithms.
 It also displays the DS records that need to be configured in the parent zone to establish the chain of trust.
+The DNS reverse proxy will use machine learning to select the algorithm for RRSIGs for a queried name.
 
 ### Test DNS Zone
 
