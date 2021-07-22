@@ -58,22 +58,27 @@ def indent(s, l=4):
     return " " * l + s.replace("\n", "\n" + " " * l)
 
 
-def filter_signatures(answer: List[dns.rrset.RRset], algs: Set[int] = None):
+def filter_signatures(a: dns.message.QueryMessage, algs: Set[int] = None):
     algs = algs or {15}
 
-    filtered_answer = []
-    for rrset in answer:
-        rrset: dns.rrset.RRset = rrset
-        if rrset.rdtype == dns.rdatatype.RdataType.RRSIG:
-            filtered_rrset: dns.rrset.RRset = rrset.copy()
-            for rr in rrset.items:
-                if rr.algorithm not in algs:
-                    filtered_rrset.remove(rr)
-            filtered_answer.append(filtered_rrset)
-            logger.info(f"Filtered {len(rrset) - len(filtered_rrset)} signatures from {dns.rdatatype.to_text(rrset.covers)} {rrset.name}")
-        else:
-            filtered_answer.append(rrset)
-    return filtered_answer
+    def filter_section(section):
+        filtered_section = []
+        for rrset in section:
+            rrset: dns.rrset.RRset = rrset
+            if rrset.rdtype == dns.rdatatype.RdataType.RRSIG:
+                filtered_rrset: dns.rrset.RRset = rrset.copy()
+                for rr in rrset.items:
+                    if rr.algorithm not in algs:
+                        filtered_rrset.remove(rr)
+                filtered_section.append(filtered_rrset)
+                logger.info(f"Filtered {len(rrset) - len(filtered_rrset)} signatures from {dns.rdatatype.to_text(rrset.covers)} {rrset.name}")
+            else:
+                filtered_section.append(rrset)
+        return filtered_section
+
+    a.answer = filter_section(a.answer)
+    a.authority = filter_section(a.authority)
+    a.additional = filter_section(a.additional)
 
 
 def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.QueryMessage) -> Set[int]:
@@ -139,7 +144,7 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
 
     if accept_algorithm:
         logger.info(f"Filtering for signatures to match {accept_algorithm}")
-        a.answer = filter_signatures(a.answer, accept_algorithm)
+        filter_signatures(a, accept_algorithm)
 
     logger.info(f"Forwarding answer {q.id} for {host}:{port} ...")
     logger.info(indent(a.to_text()))
