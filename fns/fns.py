@@ -108,7 +108,7 @@ def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.Quer
     logger.info(dict(zip(features, feature_values)))
     supported_algorithms = {algo for algo in available_algorithms if tree[ALGO_NAME[algo]].predict([feature_values])[0]}
     logger.info(f"predicted support: {supported_algorithms}")
-    selected_algorithms = {max(supported_algorithms)}
+    selected_algorithms = {max(supported_algorithms)} if supported_algorithms else available_algorithms
     logger.info(f"Selected {selected_algorithms} out of available signature algorithms {available_algorithms}")
     return selected_algorithms
 
