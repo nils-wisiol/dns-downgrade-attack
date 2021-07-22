@@ -77,11 +77,14 @@ def filter_signatures(answer: List[dns.rrset.RRset], algs: Set[int] = None):
 
 
 def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.QueryMessage) -> Set[int]:
-    available_algorithms = set.intersection(*[
+    rrsig_algorithms = [
         {int(rr.algorithm) for rr in rrset.items}
         for rrset in a.answer if rrset.rdtype == dns.rdatatype.RdataType.RRSIG
-    ])
-    edns_options = set().union({int(o.otype) for i in q.opt.items for o in i.options})
+    ]
+    if not rrsig_algorithms:
+        return set()
+    available_algorithms = set.intersection(*rrsig_algorithms)
+    edns_options = set().union({int(o.otype) for i in q.opt.items for o in i.options}) if q.opt else set()
     feature_values = [
         q.flags & dns.flags.QR == 1,  # 'feature_dns_qr'
         q.opcode(),  # 'feature_dns_opcode'
