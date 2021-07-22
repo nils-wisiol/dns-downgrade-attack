@@ -20,7 +20,7 @@ upstream_ns = socket.gethostbyname(os.environ.get('ADNSSEC_UPSTREAM_HOST', 'ns')
 upstream_port = int(os.environ.get('ADNSSEC_UPSTREAM_PORT', 53))
 
 AC = 14  # our made-up edns flag for "agile cryptography"
-MLAC = 15  # our made-up edns flag for machine-learning-based agile cryptography
+ML_SELECTION = bool(os.environ.get('ADNSSEC_ML', False))
 
 tree = {}
 ALGO_NAME = {
@@ -124,16 +124,17 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     logger.info(f"Received upstream answer for {q.id}, {host}:{port} ...")
     logger.info(indent(a.to_text()))
 
+    accept_algorithm = {}  # all
+    if ML_SELECTION:
+        accept_algorithm = predict_supported_algorithm(m, a)
     if q.opt:
-        accept_algorithm = {}  # all
         for opt in next(iter(q.opt.items)).options:
             if opt.otype == AC:  # AC OPT option
                 accept_algorithm = {b for b in opt.data}
-            elif opt.otype == MLAC:
-                accept_algorithm = predict_supported_algorithm(m, a)
-        if accept_algorithm:
-            logger.info(f"Filtering for signatures to match {accept_algorithm}")
-            a.answer = filter_signatures(a.answer, accept_algorithm)
+
+    if accept_algorithm:
+        logger.info(f"Filtering for signatures to match {accept_algorithm}")
+        a.answer = filter_signatures(a.answer, accept_algorithm)
 
     logger.info(f"Forwarding answer {q.id} for {host}:{port} ...")
     logger.info(indent(a.to_text()))

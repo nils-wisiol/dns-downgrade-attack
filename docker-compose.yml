@@ -30,6 +30,7 @@ services:
     environment:
       ADNSSEC_UPSTREAM_HOST: ns
       ADNSSEC_UPSTREAM_PORT: 53
+      ADNSSEC_ML: 1
     networks:
     - backend
     command: python3 /fns/fns.py
