@@ -3,13 +3,12 @@ set -e
 set -o xtrace
 
 ROOT=$1
-NS1=$2
-NS2=$3
-LABELS=$4
+A_RECORD=$2
+LABELS=$3
 TTL=0
 
 if [[ -z "$ROOT" ]]; then
-  echo "Usage: ./addtestzones.sh [parent domain] [ns1 A record] [ns2 A record]"
+  echo "Usage: ./addtestzones.sh [parent domain] [A record] [num labels]"
   exit 1
 fi
 
@@ -29,11 +28,9 @@ create_zone() {
   knotc zone-set "$ZONE" @ $TTL NS "ns2.$ZONE."
   knotc zone-set "$ZONE" ns1 $TTL A "$NS1"
   knotc zone-set "$ZONE" ns2 $TTL A "$NS2"
-  knotc zone-set "$ZONE" @ $TTL A 8.8.8.8
-  knotc zone-set "$ZONE" @ $TTL AAAA 2001:4860:4860::8888
+  knotc zone-set "$ZONE" @ $TTL A "$A_RECORD"
   knotc zone-set "$ZONE" @ $TTL TXT "research test zone"
-  knotc zone-set "$ZONE" '*' $TTL A 8.8.8.8
-  knotc zone-set "$ZONE" '*' $TTL AAAA 2001:4860:4860::8888
+  knotc zone-set "$ZONE" @ $TTL A "$A_RECORD"
   knotc zone-set "$ZONE" '*' $TTL TXT "research test zone"
   knotc zone-commit "$ZONE"
   if [[ -n $ALGORITHM ]]; then

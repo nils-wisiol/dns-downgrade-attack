@@ -17,6 +17,9 @@ services:
     - "${IP_NS1}:53:53/tcp"
     - "${IP_NS2}:53:53/udp"
     - "${IP_NS2}:53:53/tcp"
+    environment:
+      NS1: $IP_NS1
+      NS2: $IP_NS2
     command: /entrypoint.sh
     networks:
     - backend
