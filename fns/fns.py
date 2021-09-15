@@ -190,7 +190,7 @@ class TCPHandler(Handler):
             self.request.sendall(length + response)
 
 
-HOST, PORT = "0.0.0.0", 5300
+HOST, PORT = "0.0.0.0", 53
 
 logger.info("Training classifiers ...")
 train_classifiers()
