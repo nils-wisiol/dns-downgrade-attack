@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import os
 import socket
 import socketserver
@@ -121,7 +122,7 @@ def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.Quer
 
 
 def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
-    logger.info("accepted packet")
+    logger.info(f"accepted packet at pid {os.getpid()}")
     m = dns.message.from_wire(message)
     if m.opcode() != dns.opcode.Opcode.QUERY:
         logger.warning(f"Message from {host}:{port} wasn't a query: {dns.opcode.to_text(m.opcode())}")
@@ -151,12 +152,27 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     return a.to_wire()
 
 
+class ReusePortServer:
+
+    def server_bind(self):
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        super().server_bind()
+
+
+class ReusingUDPServer(ReusePortServer, socketserver.UDPServer):
+    pass
+
+
+class ReusingTCPServer(ReusePortServer, socketserver.TCPServer):
+    pass
+
+
 class Handler(socketserver.BaseRequestHandler):
     SERVER = None
 
     @classmethod
     def serve(cls):
-        logger.info(f"starting {cls.SERVER} ...")
+        logger.info(f"starting {cls.SERVER} in pid {os.getpid()}...")
         with cls.SERVER((HOST, PORT), cls) as server:
             server.serve_forever()
 
@@ -168,7 +184,7 @@ class Handler(socketserver.BaseRequestHandler):
 
 
 class UDPHandler(Handler):
-    SERVER = socketserver.UDPServer
+    SERVER = ReusingUDPServer
 
     def handle(self):
         data = self.request[0]
@@ -178,7 +194,7 @@ class UDPHandler(Handler):
 
 
 class TCPHandler(Handler):
-    SERVER = socketserver.TCPServer
+    SERVER = ReusingTCPServer
 
     def handle(self):
         # self.request is the TCP socket connected to the client
@@ -197,5 +213,14 @@ train_classifiers()
 logger.info("Training completed.")
 
 if __name__ == "__main__":
-    threading.Thread(target=UDPHandler.serve).start()
-    threading.Thread(target=TCPHandler.serve).start()
+    num_processes = int(os.environ.get("ADNSSEC_NUM_PROCESSES", 10))
+    processes = [
+        multiprocessing.Process(target=handler)
+        for handler in [TCPHandler.serve, UDPHandler.serve]
+        for _ in range(num_processes)
+    ]
+    for p in processes:
+        logger.info(f"Starting {p} from pid {os.getpid()}")
+        p.start()
+    for p in processes:
+        p.join()

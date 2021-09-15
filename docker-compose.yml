@@ -35,6 +35,7 @@ services:
       ADNSSEC_UPSTREAM_HOST: ns
       ADNSSEC_UPSTREAM_PORT: 53
       ADNSSEC_ML: 1
+      ADNSSEC_NUM_PROCESSES: $ADNSSEC_NUM_PROCESSES
     networks:
     - backend
     command: python3 /fns/fns.py
