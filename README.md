@@ -127,3 +127,17 @@ systemctl enable tcplogger
 ```
 
 Captured traffic will be put in `/var/log/tcplogger` and logrotated.
+
+
+## Performance
+
+An easy performance check can be done by measuring how long a number of queries takes:
+
+```shell
+./perf.sh <domainname>
+```
+
+Note that this uses sequential queries. It is mainly suited to assess the performance downgrade by the DNS reverse
+proxy (if for anything at all).
+
+A Jupyter notebook for visualization of measurement results is included: Performance.ipynb.
