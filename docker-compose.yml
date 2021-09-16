@@ -1,13 +1,13 @@
 version: '3.7'
 
 services:
-  ns:
+  nsa:
     #image: cznic/knot:latest  # does not support ed448
     build: knot-dns
     volumes:
     - ./keys:/fixed-keys
-    - ns_storage:/storage
-    - ns_rundir:/rundir
+    - nsa_storage:/storage
+    - nsa_rundir:/rundir
     - ./ns/config:/config
     - ./addtestzones.sh:/root/bin/addtestzones.sh
     - ./addagilezone.sh:/root/bin/addagilezone.sh
@@ -20,6 +20,33 @@ services:
     environment:
       NS1: $IP_NS1
       NS2: $IP_NS2
+      AGILE_NS1: $IP_AGILE_NS1
+      AGILE_NS2: $IP_AGILE_NS2
+    command: /entrypoint.sh
+    networks:
+    - backend
+    restart: unless-stopped
+  nsb:
+    #image: cznic/knot:latest  # does not support ed448
+    build: knot-dns
+    volumes:
+    - ./keys:/fixed-keys
+    - nsb_storage:/storage
+    - nsb_rundir:/rundir
+    - ./ns/config:/config
+    - ./addtestzones.sh:/root/bin/addtestzones.sh
+    - ./addagilezone.sh:/root/bin/addagilezone.sh
+    - ./ns/entrypoint.sh:/entrypoint.sh
+    ports:
+    - "${IP_AGILE_NS1}:5300:53/udp"
+    - "${IP_AGILE_NS1}:5300:53/tcp"
+    - "${IP_AGILE_NS2}:5300:53/udp"
+    - "${IP_AGILE_NS2}:5300:53/tcp"
+    environment:
+      NS1: $IP_NS1
+      NS2: $IP_NS2
+      AGILE_NS1: $IP_AGILE_NS1
+      AGILE_NS2: $IP_AGILE_NS2
     command: /entrypoint.sh
     networks:
     - backend
@@ -35,7 +62,7 @@ services:
     - "${IP_AGILE_NS2}:53:53/udp"
     - "${IP_AGILE_NS2}:53:53/tcp"
     environment:
-      ADNSSEC_UPSTREAM_HOST: ns
+      ADNSSEC_UPSTREAM_HOST: nsb
       ADNSSEC_UPSTREAM_PORT: 53
       ADNSSEC_ML: 1
       ADNSSEC_NUM_PROCESSES: $ADNSSEC_NUM_PROCESSES
@@ -49,6 +76,7 @@ networks:
   backend:
 
 volumes:
-  ns_storage:
-  ns_config:
-  ns_rundir:
+  nsa_storage:
+  nsa_rundir:
+  nsb_storage:
+  nsb_rundir:

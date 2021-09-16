@@ -9,30 +9,43 @@ Queries are accepted by a sloppy custom Python proxy script, which may filter re
 
 ## Installation and Startup
 
-To run the DNS server, clone this repository and run it using
+To run the DNS server, first clone this repository and set up the configuration in the .env file:
+
+```shell
+IP_NS1=127.0.1.1
+IP_NS2=127.0.1.2
+IP_AGILE_NS1=127.0.2.1
+IP_AGILE_NS2=127.0.2.2
+ADNSSEC_NUM_PROCESSES=10
+```
+
+The unmodified name server will be reachable under `IP_NS1` and `IP_NS2`; a name server which filteres RRSIGs will be
+reachable under `IP_AGILE_NS1` and `IP_AGILE_NS2`.
+
+Run the setup using
 
 ```shell
 docker-compose up -d
 ```
 
-### "Agile" DNS Zones
+### "Agile" DNS Zones (NS B)
 
 An "agile" DNS Zone that is signed with many different types of ciphers can be added by calling
 
 ```shell
-docker-compose exec ns /root/bin/addagilezone.sh your.zone.example.com firstns.com secondns.org
+docker-compose exec nsb /root/bin/addagilezone.sh your.zone.example.com firstns.com secondns.org
 ```
 
 This will add the zone to knot and sign it using many algorithms.
 It also displays the DS records that need to be configured in the parent zone to establish the chain of trust.
 The DNS reverse proxy will use machine learning to select the algorithm for RRSIGs for a queried name.
 
-### Test DNS Zone
+### Test DNS Zone (NS A)
 
 To add many zones using *one* signature algorithm each, run
 
 ```shell
-docker-compose exec ns /root/bin/addtestzones.sh parent.zone.com 127.0.0.1 1
+docker-compose exec nsa /root/bin/addtestzones.sh parent.zone.com 127.0.0.1 1
 ```
 
 where 127.0.0.1 is the IP address that will be served as the A record.
@@ -85,7 +98,7 @@ used to sign record sets.
 
 The zone names for signed zones are:
 
-    $ALGORITHM-$KEYSIZE-$NSEC-$STATUS.$PARENT
+    $ALGORITHM-$KEYSIZE-$NSEC-$STATUS.$LABEL.$PARENT
 
 where
 
@@ -94,6 +107,7 @@ where
 - `$KEYSIZE` is as indicated in above table;
 - `$NSEC` is either 1 or 3;
 - `$STATUS` is one of `signedok`, `signedbrokenwrongds`, `signedbrokennods`;
+- `$LABEL` is a hexadecimal number from 0 up to the maximum given as the last parameter to the `addtestzones` command
 - `$PARENT` is the parent zone name as given on the command line.
 
 The zone name for the unsigned child zone is:
