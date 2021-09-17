@@ -187,14 +187,17 @@ for ((LABEL_IDX=-1; LABEL_IDX<LABELS; LABEL_IDX++)); do
     LABEL=$LABEL.
   fi
   for ALGORITHM in rsasha1 rsasha1nsec3sha1 rsasha256 rsasha512 ecdsap256sha256 ecdsap384sha384 ed25519 ed448; do
+    if [[ $ALGORITHM == rsasha1nsec3sha1 ]]; then
+      NSEC=3
+    else
+      NSEC=1
+    fi
     KEYSIZES=$(keysizes $ALGORITHM)
     for KEYSIZE in $KEYSIZES; do
-      for NSEC in 1 3; do
-        echo "DOMAIN: $LABEL$ROOT"
-        create_signedok_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
-        create_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
-        create_signedbrokenwrongds_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
-      done
+      echo "DOMAIN: $LABEL$ROOT"
+      create_signedok_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+      # create_signedbrokennods_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
+      create_signedbrokenwrongds_zone "$ALGORITHM" "$KEYSIZE" "$LABEL$ROOT" "$NSEC"
     done
   done
 done
