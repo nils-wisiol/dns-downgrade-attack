@@ -31,9 +31,7 @@ create_zone() {
     zone-set "$ZONE" 2.a.ns $TTL A "$IP_NS_A_2"
     zone-set "$ZONE" 1.b.ns $TTL A "$IP_NS_B_1"
     zone-set "$ZONE" 1.agile.b.ns $TTL A "$IP_NS_B_AGILE_1"
-    zone-set "$ZONE" @ $TTL A "$A_RECORD"
     zone-set "$ZONE" @ $TTL TXT "research test zone"
-    zone-set "$ZONE" '*' $TTL A "$A_RECORD"
     zone-set "$ZONE" '*' $TTL TXT "research test zone"
   zone-commit "$ZONE"
 EOF
