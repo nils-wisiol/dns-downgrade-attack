@@ -2,9 +2,8 @@
 set -e
 set -o xtrace
 
-ROOT=$1
-A_RECORD=$2
-LABELS=$3
+ROOT=$ZONE
+LABELS=$1
 TTL=0
 
 if [[ -z "$ROOT" ]]; then
@@ -24,13 +23,15 @@ create_zone() {
 
   knotc zone-begin "$ZONE"
   knotc zone-set "$ZONE" @ $TTL SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 $TTL
-  knotc zone-set "$ZONE" @ $TTL NS "ns1.$ZONE."
-  knotc zone-set "$ZONE" @ $TTL NS "ns2.$ZONE."
-  knotc zone-set "$ZONE" ns1 $TTL A "$NS1"
-  knotc zone-set "$ZONE" ns2 $TTL A "$NS2"
+  knotc zone-set "$ZONE" @ $TTL NS "1.a.ns.$ZONE."
+  knotc zone-set "$ZONE" @ $TTL NS "2.a.ns.$ZONE."
+  knotc zone-set "$ZONE" 1.a.ns $TTL A "$IP_NS_A_1"
+  knotc zone-set "$ZONE" 2.a.ns $TTL A "$IP_NS_A_2"
+  knotc zone-set "$ZONE" 1.b.ns $TTL A "$IP_NS_B_1"
+  knotc zone-set "$ZONE" 1.agile.b.ns $TTL A "$IP_NS_B_AGILE_1"
   knotc zone-set "$ZONE" @ $TTL A "$A_RECORD"
   knotc zone-set "$ZONE" @ $TTL TXT "research test zone"
-  knotc zone-set "$ZONE" @ $TTL A "$A_RECORD"
+  knotc zone-set "$ZONE" '*' $TTL A "$A_RECORD"
   knotc zone-set "$ZONE" '*' $TTL TXT "research test zone"
   knotc zone-commit "$ZONE"
   if [[ -n $ALGORITHM ]]; then
@@ -63,7 +64,8 @@ delegate() {
   SECURE=$3
   echo "Adding NS and DS for $SUBNAME.$PARENT to $PARENT"
   knotc zone-begin "$PARENT"
-  knotc zone-set "$PARENT" "$SUBNAME" $TTL NS "$NS."
+  knotc zone-set "$PARENT" "$SUBNAME" $TTL NS "1.a.ns.$PARENT."
+  knotc zone-set "$PARENT" "$SUBNAME" $TTL NS "2.a.ns.$PARENT."
   if [[ -n "$SECURE" ]]; then
     keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
     do
@@ -74,11 +76,19 @@ delegate() {
 }
 
 delegate_manually() {
-  ZONE=$1
+  SUBNAME=$1
+  PARENT=$2
+  SECURE=$3
   echo "FURTHER ACTION REQUIRED: Add DS records for parent of $ZONE:"
-  echo "@@@@"
-  keymgr "$ZONE." ds
-  echo "@@@@"
+  echo zone-begin "$PARENT"
+  echo zone-set "$PARENT" "$SUBNAME" $TTL NS "$NS."
+  if [[ -n "$SECURE" ]]; then
+    keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
+    do
+      echo zone-set "$PARENT" "$SUBNAME" $TTL DS $DS
+    done
+  fi
+  echo zone-commit "$PARENT"
 }
 
 create_label_zone() {

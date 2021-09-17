@@ -13,15 +13,17 @@ services:
     - ./addagilezone.sh:/root/bin/addagilezone.sh
     - ./ns/entrypoint.sh:/entrypoint.sh
     ports:
-    - "${IP_NS1}:53:53/udp"
-    - "${IP_NS1}:53:53/tcp"
-    - "${IP_NS2}:53:53/udp"
-    - "${IP_NS2}:53:53/tcp"
+    - "${IP_NS_A_1}:53:53/udp"
+    - "${IP_NS_A_1}:53:53/tcp"
+    - "${IP_NS_A_2}:53:53/udp"
+    - "${IP_NS_A_2}:53:53/tcp"
     environment:
-      NS1: $IP_NS1
-      NS2: $IP_NS2
-      AGILE_NS1: $IP_AGILE_NS1
-      AGILE_NS2: $IP_AGILE_NS2
+      - ZONE
+      - A_RECORD
+      - IP_NS_A_1
+      - IP_NS_A_2
+      - IP_NS_B_1
+      - IP_NS_B_AGILE_1
     command: /entrypoint.sh
     networks:
     - backend
@@ -38,15 +40,15 @@ services:
     - ./addagilezone.sh:/root/bin/addagilezone.sh
     - ./ns/entrypoint.sh:/entrypoint.sh
     ports:
-    - "${IP_AGILE_NS1}:5300:53/udp"
-    - "${IP_AGILE_NS1}:5300:53/tcp"
-    - "${IP_AGILE_NS2}:5300:53/udp"
-    - "${IP_AGILE_NS2}:5300:53/tcp"
+    - "${IP_NS_B_1}:53:53/udp"
+    - "${IP_NS_B_1}:53:53/tcp"
     environment:
-      NS1: $IP_NS1
-      NS2: $IP_NS2
-      AGILE_NS1: $IP_AGILE_NS1
-      AGILE_NS2: $IP_AGILE_NS2
+      - ZONE
+      - A_RECORD
+      - IP_NS_A_1
+      - IP_NS_A_2
+      - IP_NS_B_1
+      - IP_NS_B_AGILE_1
     command: /entrypoint.sh
     networks:
     - backend
@@ -57,10 +59,8 @@ services:
     - ./fns/:/fns
     - ./analysis/:/data/
     ports:
-    - "${IP_AGILE_NS1}:53:53/udp"
-    - "${IP_AGILE_NS1}:53:53/tcp"
-    - "${IP_AGILE_NS2}:53:53/udp"
-    - "${IP_AGILE_NS2}:53:53/tcp"
+    - "${IP_NS_B_AGILE_1}:53:53/udp"
+    - "${IP_NS_B_AGILE_1}:53:53/tcp"
     environment:
       ADNSSEC_UPSTREAM_HOST: nsb
       ADNSSEC_UPSTREAM_PORT: 53

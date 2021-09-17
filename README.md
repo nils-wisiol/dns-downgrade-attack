@@ -4,23 +4,31 @@ Research implementation of a DNS server that implements agile DNSSEC.
 
 ## Design
 
-In the background, we run a knot DNS server that ultimately answers all queries.
-Queries are accepted by a sloppy custom Python proxy script, which may filter responses.
+This setup is capable of hosting test zones and agile DNS zones.
+To that end, it consists of two authoritative name servers (A and B), with NS B having an attached DNS reverse proxy
+(fns) which facilitates the agility by filtering RRSIGs in responses.
+
+## Prerequisites
+
+To run the setup, four IP addresses are required: two for NS A, one for agile access to NS B, and one additional one
+for unfiltered access to NS B (for debugging).
 
 ## Installation and Startup
 
 To run the DNS server, first clone this repository and set up the configuration in the .env file:
 
 ```shell
-IP_NS1=127.0.1.1
-IP_NS2=127.0.1.2
-IP_AGILE_NS1=127.0.2.1
-IP_AGILE_NS2=127.0.2.2
+ZONE=example.com.
+IP_NS_A_1=127.0.1.1
+IP_NS_A_2=127.0.1.2
+IP_NS_B_1=127.0.2.1
+IP_NS_B_AGILE_1=127.0.3.1
 ADNSSEC_NUM_PROCESSES=10
 ```
 
-The unmodified name server will be reachable under `IP_NS1` and `IP_NS2`; a name server which filteres RRSIGs will be
-reachable under `IP_AGILE_NS1` and `IP_AGILE_NS2`.
+The unmodified name server will be reachable under `IP_NS_A_1` and `IP_NS_A_2`;
+a name server which filteres RRSIGs will be reachable under `IP_NS_B_AGILE_1`.
+Unfiltered access to NS B is possible via `IP_NS_B_1`.
 
 Run the setup using
 
@@ -33,11 +41,12 @@ docker-compose up -d
 An "agile" DNS Zone that is signed with many different types of ciphers can be added by calling
 
 ```shell
-docker-compose exec nsb /root/bin/addagilezone.sh your.zone.example.com firstns.com secondns.org
+docker-compose exec nsb /root/bin/addagilezone.sh
 ```
 
-This will add the zone to knot and sign it using many algorithms.
-It also displays the DS records that need to be configured in the parent zone to establish the chain of trust.
+This will add the zone `agile.$ZONE` to NS B and sign it using many algorithms.
+It also displays the NS and DS records that need to be configured in the parent zone (NS A) to establish the chain of
+trust.
 The DNS reverse proxy will use machine learning to select the algorithm for RRSIGs for a queried name.
 
 ### Test DNS Zone (NS A)
@@ -45,11 +54,10 @@ The DNS reverse proxy will use machine learning to select the algorithm for RRSI
 To add many zones using *one* signature algorithm each, run
 
 ```shell
-docker-compose exec nsa /root/bin/addtestzones.sh parent.zone.com 127.0.0.1 1
+docker-compose exec nsa /root/bin/addtestzones.sh 1
 ```
 
-where 127.0.0.1 is the IP address that will be served as the A record.
-The last number, here 1, is the number of sets of zones that will be created.
+The parameter, here 1, is the number of sets of zones that will be created. The A record created is configured in .env.
 
 Keys will be stored in the `keys/` directory. Any already present keys will be imported and used.
 Naming schema is `$ZONE.key.pem`.
