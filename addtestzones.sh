@@ -16,24 +16,28 @@ create_zone() {
   ALGORITHM=$2
   KEYSIZE=$3
   NSEC=$4
-  knotc conf-begin
-  knotc conf-set "zone[$ZONE]"
-  knotc conf-set "zone[$ZONE].dnssec-signing" off
-  knotc conf-commit
 
-  knotc zone-begin "$ZONE"
-  knotc zone-set "$ZONE" @ $TTL SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 $TTL
-  knotc zone-set "$ZONE" @ $TTL NS "1.a.ns.$ZONE."
-  knotc zone-set "$ZONE" @ $TTL NS "2.a.ns.$ZONE."
-  knotc zone-set "$ZONE" 1.a.ns $TTL A "$IP_NS_A_1"
-  knotc zone-set "$ZONE" 2.a.ns $TTL A "$IP_NS_A_2"
-  knotc zone-set "$ZONE" 1.b.ns $TTL A "$IP_NS_B_1"
-  knotc zone-set "$ZONE" 1.agile.b.ns $TTL A "$IP_NS_B_AGILE_1"
-  knotc zone-set "$ZONE" @ $TTL A "$A_RECORD"
-  knotc zone-set "$ZONE" @ $TTL TXT "research test zone"
-  knotc zone-set "$ZONE" '*' $TTL A "$A_RECORD"
-  knotc zone-set "$ZONE" '*' $TTL TXT "research test zone"
-  knotc zone-commit "$ZONE"
+  knotc <<EOF
+  conf-begin
+    conf-set "zone[$ZONE]"
+    conf-set "zone[$ZONE].dnssec-signing" off
+  conf-commit
+
+  zone-begin "$ZONE"
+    zone-set "$ZONE" @ $TTL SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 $TTL
+    zone-set "$ZONE" @ $TTL NS "1.a.ns.$ZONE."
+    zone-set "$ZONE" @ $TTL NS "2.a.ns.$ZONE."
+    zone-set "$ZONE" 1.a.ns $TTL A "$IP_NS_A_1"
+    zone-set "$ZONE" 2.a.ns $TTL A "$IP_NS_A_2"
+    zone-set "$ZONE" 1.b.ns $TTL A "$IP_NS_B_1"
+    zone-set "$ZONE" 1.agile.b.ns $TTL A "$IP_NS_B_AGILE_1"
+    zone-set "$ZONE" @ $TTL A "$A_RECORD"
+    zone-set "$ZONE" @ $TTL TXT "research test zone"
+    zone-set "$ZONE" '*' $TTL A "$A_RECORD"
+    zone-set "$ZONE" '*' $TTL TXT "research test zone"
+  zone-commit "$ZONE"
+EOF
+
   if [[ -n $ALGORITHM ]]; then
     echo "Creating secure zone $ZONE"
     KEYFILE=/fixed-keys/$ZONE.key.pem
@@ -49,10 +53,12 @@ create_zone() {
       keymgr "$ZONE" import-pem "$KEYFILE" algorithm="${ALGORITHM1}" size="$KEYSIZE" ksk=true zsk=true
     fi
     keymgr "$ZONE" nsec3-salt
-    knotc conf-begin
-    knotc conf-set "zone[$ZONE].dnssec-policy" "nsec$NSEC"
-    knotc conf-set "zone[$ZONE].dnssec-signing" on
-    knotc conf-commit
+    knotc <<EOF
+    conf-begin
+      conf-set "zone[$ZONE].dnssec-policy" "nsec$NSEC"
+      conf-set "zone[$ZONE].dnssec-signing" on
+    conf-commit
+EOF
   else
     echo "Creating insecure zone $ZONE"
   fi
@@ -63,9 +69,11 @@ delegate() {
   PARENT=$2
   SECURE=$3
   echo "Adding NS and DS for $SUBNAME.$PARENT to $PARENT"
-  knotc zone-begin "$PARENT"
-  knotc zone-set "$PARENT" "$SUBNAME" $TTL NS "1.a.ns.$PARENT."
-  knotc zone-set "$PARENT" "$SUBNAME" $TTL NS "2.a.ns.$PARENT."
+  knotc <<EOF
+  zone-begin "$PARENT"
+  zone-set "$PARENT" "$SUBNAME" $TTL NS "1.a.ns.$PARENT."
+  zone-set "$PARENT" "$SUBNAME" $TTL NS "2.a.ns.$PARENT."
+EOF
   if [[ -n "$SECURE" ]]; then
     keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
     do
@@ -128,10 +136,12 @@ create_signedbrokenwrongds_zone() {
   create_zone "$ZONE" "$ALGORITHM" "$KEYSIZE" "$NSEC"
   delegate "$SUBNAME" "$DOMAIN"
   # delegate some unrelated key
-  knotc zone-begin "$DOMAIN"
-  knotc zone-set "$DOMAIN" "$SUBNAME" $TTL DS "25222 8 2 9740bf5bcc618af66c764d51522e5fd3913a187d09d89d03de079eef43152990"
-  knotc zone-set "$DOMAIN" "$SUBNAME" $TTL DS "25222 8 4 d9a75c1579df7939b3c2e5417c08d0c91e017c7912f86b253a9407f561d8e67d732f8f5c051a4d416b22c598453b281f"
-  knotc zone-commit "$DOMAIN"
+  knotc <<EOF
+  zone-begin "$DOMAIN"
+    zone-set "$DOMAIN" "$SUBNAME" $TTL DS "25222 8 2 9740bf5bcc618af66c764d51522e5fd3913a187d09d89d03de079eef43152990"
+    zone-set "$DOMAIN" "$SUBNAME" $TTL DS "25222 8 4 d9a75c1579df7939b3c2e5417c08d0c91e017c7912f86b253a9407f561d8e67d732f8f5c051a4d416b22c598453b281f"
+  zone-commit "$DOMAIN"
+EOF
 }
 
 create_unsigned_zone() {
