@@ -33,8 +33,7 @@ knotc zone-sign "agile.$ZONE"
 echo "To delegate securely, run the following commands"
 echo docker-compose exec nsa knotc zone-begin "$ZONE"
 echo docker-compose exec nsa knotc zone-set "$ZONE" agile 0 NS "1.agile.b.ns.$ZONE"
-echo docker-compose exec -T nsb keymgr "agile.$ZONE" ds | cut -d ' ' -f 3- > /tmp/ds
-cat /tmp/ds
+keymgr "agile.$ZONE" ds | cut -d ' ' -f 3- > /tmp/ds
 while read -r DS
 do
   echo docker-compose exec nsa knotc zone-set "$ZONE" agile 0 DS $DS
