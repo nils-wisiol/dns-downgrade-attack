@@ -21,6 +21,7 @@ create_zone() {
   conf-begin
     conf-set "zone[$ZONE]"
     conf-set "zone[$ZONE].dnssec-signing" off
+    conf-set acl acme_acl
   conf-commit
 
   zone-begin "$ZONE"

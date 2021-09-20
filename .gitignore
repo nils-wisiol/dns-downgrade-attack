@@ -145,3 +145,6 @@ traffic/
 
 # performance
 perf.csv
+
+# acme keys
+acme/

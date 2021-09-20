@@ -2,6 +2,10 @@
 set -e
 set -o xtrace
 
+if [[ ! -f /etc/knot/acme/acme.key ]]; then
+  keymgr tsig generate -t acme_key hmac-sha512 > /etc/knot/acme/acme.key
+fi
+
 if [[ ! -d /storage/confdb ]]; then
   # First time booting: setup initial configuration
   knotd -C /storage/confdb &
@@ -18,6 +22,10 @@ conf-set policy[nsec3].manual true
 conf-set policy[nsec3].nsec3 true
 conf-set policy[nsec3].nsec3-iterations 1
 conf-set policy[nsec3].nsec3-salt-length 0
+conf-set include /etc/knot/acme/acme.key
+conf-set acl[acme_acl]
+conf-set acl[acme_acl].address 0.0.0.0
+conf-set acl[acme_acl].action update
 conf-commit
 EOF
   kill $PID

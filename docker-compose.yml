@@ -12,6 +12,7 @@ services:
     - ./addtestzones.sh:/root/bin/addtestzones.sh
     - ./addagilezone.sh:/root/bin/addagilezone.sh
     - ./ns/entrypoint.sh:/entrypoint.sh
+    - ./acme/keys/nsa/:/etc/knot/acme/
     ports:
     - "${IP_NS_A_1}:53:53/udp"
     - "${IP_NS_A_1}:53:53/tcp"
@@ -39,6 +40,7 @@ services:
     - ./addtestzones.sh:/root/bin/addtestzones.sh
     - ./addagilezone.sh:/root/bin/addagilezone.sh
     - ./ns/entrypoint.sh:/entrypoint.sh
+    - ./acme/keys/nsb/:/etc/knot/acme/
     ports:
     - "${IP_NS_B_1}:53:53/udp"
     - "${IP_NS_B_1}:53:53/tcp"
