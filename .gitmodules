@@ -3,4 +3,4 @@
 	url = https://gitlab.nic.cz/knot/knot-dns.git
 [submodule "acme.sh"]
 	path = acme.sh
-	url = https://github.com/acmesh-official/acme.sh.git
+	url = https://github.com/nils-wisiol/acme.sh.git
