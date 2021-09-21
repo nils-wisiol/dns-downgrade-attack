@@ -22,11 +22,11 @@ conf-set policy[nsec3].manual true
 conf-set policy[nsec3].nsec3 true
 conf-set policy[nsec3].nsec3-iterations 1
 conf-set policy[nsec3].nsec3-salt-length 0
+conf-set include /etc/knot/acme/acme.key
 conf-set acl[acme]
 conf-set acl[acme].address 0.0.0.0
 conf-set acl[acme].action update
 conf-set acl[acme].key acme_key
-conf-set include /etc/knot/acme/acme.key
 conf-commit
 EOF
   knotd -C /storage/confdb &
