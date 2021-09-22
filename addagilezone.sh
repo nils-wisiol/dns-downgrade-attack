@@ -17,6 +17,7 @@ knotc conf-begin
 knotc conf-set "zone[agile.$ZONE]"
 knotc conf-set "zone[agile.$ZONE].dnssec-policy" "default"
 knotc conf-set "zone[agile.$ZONE].dnssec-signing" "on"
+knotc conf-set "zone[agile.$ZONE].acl" "acme"
 knotc conf-commit
 knotc zone-begin "agile.$ZONE"
 knotc zone-set "agile.$ZONE" @ 0 SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 3600

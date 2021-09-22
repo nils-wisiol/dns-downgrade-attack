@@ -164,3 +164,50 @@ Note that this uses sequential queries. It is mainly suited to assess the perfor
 proxy (if for anything at all).
 
 A Jupyter notebook for visualization of measurement results is included: Performance.ipynb.
+
+
+## SSL Zertificates
+
+To obtain certificates for test domains via ZeroSSL, set an email address for your new ZeroSSL account
+
+```shell
+export EMAIL=myexample.com
+```
+
+Access to the mailbox given is (as of today) not required.
+Then use acme.sh:
+
+```shell
+git submodule init
+git submodule update
+source .env
+export KNOT_SERVER=$IP_NS_A_1
+export KNOT_KEY=`grep \# acme/keys/nsa/acme.key | cut -d' ' -f2`
+bash acme.sh/acme.sh --register-account -m $EMAIL
+ZONES=$(docker-compose exec nsa knotc zone-status | cut -d ' ' -f1 | sed 's/[][]//g' | sort | uniq)
+for Z in $(echo $ZONES); do
+Z=$(basename $Z .)
+echo "+++++++++++++++++++ Applying for certificate for $Z +++++++++++++++++++"
+bash acme.sh/acme.sh --issue --dns dns_knot -d $Z -d "*.$Z" --server zerossl --dnssleep 1
+done
+```
+
+The command can be run again in case it could not complete or certificates are expiring soon.
+Certificates that are still good will be skipped.
+
+To obtain a certificate for the agile domain via ZeroSSL, use:
+
+```shell
+git submodule init
+git submodule update
+source .env
+export KNOT_SERVER=$IP_NS_B_1
+export KNOT_KEY=`grep \# acme/keys/nsb/acme.key | cut -d' ' -f2`
+bash acme.sh/acme.sh --register-account -m $EMAIL
+bash acme.sh/acme.sh --issue --dns dns_knot -d agile.$ZONE -d "*.agile.$ZONE" --server zerossl --dnssleep 1
+```
+
+As NS A and NS B use different keys and are reachable via different addresses, it is required to remove
+`~/.acme.sh/account.conf` when switching from issuing certificates for NS A and NS B.
+Otherwise, the `KNOT_SERVER` and `KNOT_KEY` environment variables have no effect.
+This does not affect the account that is being used by acme.sh.
