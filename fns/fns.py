@@ -94,14 +94,14 @@ def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.Quer
         return available_algorithms
     edns_options = set().union({int(o.otype) for i in q.opt.items for o in i.options}) if q.opt else set()
     feature_values = [
-        q.flags & dns.flags.QR == 1,  # 'feature_dns_qr'
+        dns.flags.QR in q.flags,  # 'feature_dns_qr'
         q.opcode(),  # 'feature_dns_opcode'
-        q.flags & dns.flags.AA == 1,  # 'feature_dns_aa'
-        q.flags & dns.flags.TC == 1,  # 'feature_dns_tc'
-        q.flags & dns.flags.RD == 1,  # 'feature_dns_rd'
-        q.flags & dns.flags.RA == 1,  # 'feature_dns_ra'
+        dns.flags.AA in q.flags,  # 'feature_dns_aa'
+        dns.flags.TC in q.flags,  # 'feature_dns_tc'
+        dns.flags.RD in q.flags,  # 'feature_dns_rd'
+        dns.flags.RA in q.flags,  # 'feature_dns_ra'
         0,  # 'feature_dns_z'
-        q.flags & dns.flags.CD == 1,  # 'feature_dns_cd'
+        dns.flags.CD in q.flags,  # 'feature_dns_cd'
         q.rcode(),  # 'feature_dns_rcode'
         len(q.question),  # 'feature_dns_qdcount'
         len(q.answer),  # 'feature_dns_ancount'
