@@ -4,55 +4,21 @@ import os
 import socket
 import socketserver
 import struct
-import threading
 import traceback
-from typing import List, Set, Optional, Dict
+from typing import Set, Optional
 
 import dns.message
 import dns.query
-import pandas as pd
-import sklearn as sk
-import sklearn.tree
+import dns.rrset
+
+IN = dns.rdataclass.from_text("IN")
+TXT = dns.rdatatype.from_text("TXT")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-upstream_ns = socket.gethostbyname(os.environ.get('ADNSSEC_UPSTREAM_HOST', 'ns'))
-upstream_port = int(os.environ.get('ADNSSEC_UPSTREAM_PORT', 53))
-
-AC = 14  # our made-up edns flag for "agile cryptography"
-ML_SELECTION = bool(os.environ.get('ADNSSEC_ML', False))
-
-tree = {}
-ALGO_NAME = {
-    5: 'rsasha1',
-    7: 'rsasha1nsec3sha1',
-    8: 'rsasha256',
-    10: 'rsasha512',
-    13: 'ecdsap256sha256',
-    14: 'ecdsap384sha384',
-    15: 'ed25519',
-    16: 'ed448',
-}
-ALGO_NUM = {name: num for num, name in ALGO_NAME.items()}
-priority = [ALGO_NAME[key] for key in sorted(ALGO_NAME.keys())]
-features = []
-
-
-def train_classifiers() -> Dict[int, sk.tree.DecisionTreeClassifier]:
-    data = {
-        name: pd.read_pickle(f'/data/ml_data_{name}.pickle')
-        for name in ALGO_NAME.values()
-    }
-    features.extend(list(filter(lambda c: c.startswith('feature_dns'), next(iter(data.values())).keys())))
-    label = 'label_rcode0andad1'
-    logger.info(f"Using features {features} to predict label {label}")
-
-    for algo, d in data.items():
-        X = d[features]
-        Y = d[label]
-        tree[algo] = sk.tree.DecisionTreeClassifier()
-        tree[algo] = tree[algo].fit(X, Y)
+auth_ns_addr = socket.gethostbyname(os.environ.get('AUTH_NS_HOST', 'ns'))
+auth_ns_port = int(os.environ.get('AUTH_NS_PORT', 53))
 
 
 def indent(s, l=4):
@@ -74,51 +40,14 @@ def filter_signatures(a: dns.message.QueryMessage, algs: Set[int] = None):
                 filtered_section.append(filtered_rrset)
                 logger.info(f"Filtered {len(rrset) - len(filtered_rrset)} signatures from {dns.rdatatype.to_text(rrset.covers)} {rrset.name}")
             else:
+                if rrset.rdtype == dns.rdatatype.RdataType.TXT:
+                    filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, TXT, ['evil']))
                 filtered_section.append(rrset)
         return filtered_section
 
     a.answer = filter_section(a.answer)
     a.authority = filter_section(a.authority)
     a.additional = filter_section(a.additional)
-
-
-def predict_supported_algorithm(q: dns.message.QueryMessage, a: dns.message.QueryMessage) -> Set[int]:
-    rrsig_algorithms = [
-        {int(rr.algorithm) for rr in rrset.items}
-        for rrset in a.answer if rrset.rdtype == dns.rdatatype.RdataType.RRSIG
-    ]
-    if not rrsig_algorithms:
-        return set()
-    available_algorithms = set.intersection(*rrsig_algorithms)
-    if len(available_algorithms) == 1:
-        return available_algorithms
-    edns_options = set().union({int(o.otype) for i in q.opt.items for o in i.options}) if q.opt else set()
-    feature_values = [
-        dns.flags.QR in q.flags,  # 'feature_dns_qr'
-        q.opcode(),  # 'feature_dns_opcode'
-        dns.flags.AA in q.flags,  # 'feature_dns_aa'
-        dns.flags.TC in q.flags,  # 'feature_dns_tc'
-        dns.flags.RD in q.flags,  # 'feature_dns_rd'
-        dns.flags.RA in q.flags,  # 'feature_dns_ra'
-        0,  # 'feature_dns_z'
-        dns.flags.CD in q.flags,  # 'feature_dns_cd'
-        q.rcode(),  # 'feature_dns_rcode'
-        len(q.question),  # 'feature_dns_qdcount'
-        len(q.answer),  # 'feature_dns_ancount'
-        len(q.authority),  # 'feature_dns_nscount',
-        len(q.additional),  # 'feature_dns_arcount',
-        q.opt.rdclass,  # 'feature_dns_edns_requestors_udp_payload_size',
-        any(not (str(rr.name).islower() or str(rr.name).isupper()) for rr in q.question),
-        # feature_dns_edns_requestors_udp_payload_size
-        10 in edns_options,  # 'feature_dns_edns_cookie'
-        8 in edns_options,  # 'feature_dns_edns_subnet'
-    ]
-    logger.info(dict(zip(features, feature_values)))
-    supported_algorithms = {algo for algo in available_algorithms if tree[ALGO_NAME[algo]].predict([feature_values])[0]}
-    logger.info(f"predicted support: {supported_algorithms}")
-    selected_algorithms = {max(supported_algorithms)} if supported_algorithms else available_algorithms
-    logger.info(f"Selected {selected_algorithms} out of available signature algorithms {available_algorithms}")
-    return selected_algorithms
 
 
 def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
@@ -131,17 +60,11 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     logger.info(f"Query {q.id} from {host}:{port}")
     logger.info(indent(q.to_text()))
     logger.info(f"Forwarding query {q.id} from {host}:{port} ...")
-    a = dns.query.tcp(q, where=upstream_ns, port=upstream_port, timeout=1)
+    a = dns.query.tcp(q, where=auth_ns_addr, port=auth_ns_port, timeout=1)
     logger.info(f"Received upstream answer for {q.id}, {host}:{port} ...")
     logger.info(indent(a.to_text()))
 
-    accept_algorithm = {}  # all
-    if ML_SELECTION:
-        accept_algorithm = predict_supported_algorithm(m, a)
-    if q.opt:
-        for opt in next(iter(q.opt.items)).options:
-            if opt.otype == AC:  # AC OPT option
-                accept_algorithm = {b for b in opt.data}
+    accept_algorithm = {15, 16}  # ed25519, ed448
 
     if accept_algorithm:
         logger.info(f"Filtering for signatures to match {accept_algorithm}")
@@ -207,10 +130,6 @@ class TCPHandler(Handler):
 
 
 HOST, PORT = "0.0.0.0", 53
-
-logger.info("Training classifiers ...")
-train_classifiers()
-logger.info("Training completed.")
 
 if __name__ == "__main__":
     num_processes = int(os.environ.get("ADNSSEC_NUM_PROCESSES", 10))
