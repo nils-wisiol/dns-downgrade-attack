@@ -27,6 +27,8 @@ def indent(s, l=4):
 
 def filter_signatures(a: dns.message.QueryMessage, algs: Set[int] = None):
     algs = algs or {15}
+    if a.question[0].name[0] == b'unsign':
+        algs = {}
 
     def filter_section(section):
         filtered_section = []

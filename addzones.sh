@@ -36,6 +36,7 @@ create_zone() {
     zone-set "$ZONE" @ $TTL NS "ns.$ZONE."
     zone-set "$ZONE" ns $TTL A "$IP_MITM"
     zone-set "$ZONE" @ $TTL TXT "research test zone"
+    zone-set "$ZONE" unsign $TTL TXT "research test zone"
   zone-commit "$ZONE"
 EOF
 
