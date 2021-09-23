@@ -66,7 +66,7 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
 
     accept_algorithm = {15, 16}  # ed25519, ed448
 
-    if accept_algorithm:
+    if BE_EVIL and accept_algorithm:
         logger.info(f"Filtering for signatures to match {accept_algorithm}")
         filter_signatures(a, accept_algorithm)
 
@@ -130,6 +130,7 @@ class TCPHandler(Handler):
 
 
 HOST, PORT = "0.0.0.0", 53
+BE_EVIL = bool(os.environ.get("BE_EVIL", False))
 
 if __name__ == "__main__":
     num_processes = int(os.environ.get("ADNSSEC_NUM_PROCESSES", 10))

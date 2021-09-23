@@ -34,6 +34,7 @@ services:
     environment:
       AUTH_NS_HOST: ns
       AUTH_NS_PORT: 53
+      BE_EVIL: $BE_EVIL
     networks:
     - backend
     command: python3 /mitm/mitm.py
