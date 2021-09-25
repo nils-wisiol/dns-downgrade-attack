@@ -78,3 +78,4 @@ create_zone "onlyrsasha256.${ORIGIN}" "rsasha256" "2048" "no"
 
 delegate_manually "rsasha256.${ORIGIN}"
 delegate_manually "ecdsap256sha256.${ORIGIN}"
+delegate_manually "onlyrsasha256.${ORIGIN}"
