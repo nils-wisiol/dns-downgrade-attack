@@ -13,6 +13,7 @@ import dns.rrset
 
 IN = dns.rdataclass.from_text("IN")
 TXT = dns.rdatatype.from_text("TXT")
+RRSIG = dns.rdatatype.from_text("RRSIG")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,7 +28,10 @@ def indent(s, l=4):
 
 def filter_signatures(a: dns.message.QueryMessage, algs: Set[int] = None):
     algs = algs or {15}
-    if a.question[0].name[0] == b'unsign':
+    qname = a.question[0].name
+    if qname[0] == b'unsign':
+        algs = {}
+    elif qname[0] == b'unsign-and-attach':
         algs = {}
 
     def filter_section(section):
@@ -44,6 +48,9 @@ def filter_signatures(a: dns.message.QueryMessage, algs: Set[int] = None):
             else:
                 if rrset.rdtype == dns.rdatatype.RdataType.TXT:
                     filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, TXT, ['evil']))
+                    if qname[0] == b'unsign-and-attach':
+                        invalid_signature = "TXT 16 4 0 20211007155444 20210923142444 10717 rsasha256.resolver-downgrade-attack.dedyn.io. 9zvUve6RuNC1NcAvTIH+kh6VXVOmIu347s/6ilIRp0rSq1YqldE09Tdm Ue/6i4HxdUbnLWfdpD+AhtvDwp7ZIO/FU7IRWgyne6v+RcYApLwLT2+L DQgEH5fFwnY60H6ofxHSP2zwT6amhqPSd7G5ihYA"
+                        filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, RRSIG, [invalid_signature]))
                 filtered_section.append(rrset)
         return filtered_section
 

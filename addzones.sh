@@ -24,6 +24,7 @@ create_zone() {
   ZONE=$1
   ALGORITHM=$2
   KEYSIZE=$3
+  ED448=$4
 
   knotc <<EOF
   conf-begin
@@ -37,6 +38,7 @@ create_zone() {
     zone-set "$ZONE" ns $TTL A "$IP_MITM"
     zone-set "$ZONE" @ $TTL TXT "research test zone"
     zone-set "$ZONE" unsign $TTL TXT "research test zone"
+    zone-set "$ZONE" unsign-and-attach $TTL TXT "research test zone"
   zone-commit "$ZONE"
 EOF
 
@@ -46,7 +48,9 @@ EOF
   add_algorithm $ZONE $ALGORITHM $KEYSIZE
 
   # add algorithm 16 (ed448)
-  add_algorithm $ZONE 16 456
+  if [ "$ED448" == "yes" ]; then
+    add_algorithm $ZONE 16 456
+  fi
 
   knotc <<EOF
   conf-begin
@@ -59,7 +63,7 @@ EOF
 delegate_manually() {
   SUBNAME=$1
   PARENT=$2
-  echo "FURTHER ACTION REQUIRED: Add DS records for parent of $ZONE:"
+  echo "FURTHER ACTION REQUIRED: Add DS records for parent of $SUBNAME.$PARENT:"
   echo zone-begin "$PARENT"
   echo zone-set "$PARENT" "$SUBNAME" $TTL NS "$NS."
   keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
@@ -68,8 +72,9 @@ delegate_manually() {
   done
 }
 
-create_zone "rsasha256.${ORIGIN}" "rsasha256" "2048"
-create_zone "ecdsap256sha256.${ORIGIN}" "ecdsap256sha256" "256"
+create_zone "rsasha256.${ORIGIN}" "rsasha256" "2048" "yes"
+create_zone "ecdsap256sha256.${ORIGIN}" "ecdsap256sha256" "256" "yes"
+create_zone "onlyrsasha256.${ORIGIN}" "rsasha256" "2048" "no"
 
 delegate_manually "rsasha256.${ORIGIN}"
 delegate_manually "ecdsap256sha256.${ORIGIN}"
