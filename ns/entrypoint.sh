@@ -10,6 +10,7 @@ if [[ ! -d /storage/confdb ]]; then
   # First time booting: setup initial configuration
   knotd -C /storage/confdb &
   PID=$!
+  sleep 2
   knotc conf-init
   knotc <<EOF
 conf-begin
