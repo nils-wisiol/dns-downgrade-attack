@@ -12,7 +12,7 @@ and modifies the content of any TXT record contained in the response.
 To obtain certificates for test domains via ZeroSSL, set an email address for your new ZeroSSL account
 
 ```shell
-export EMAIL=myexample.com
+export EMAIL=my@example.com
 ```
 
 Access to the mailbox given is (as of today) not required.
