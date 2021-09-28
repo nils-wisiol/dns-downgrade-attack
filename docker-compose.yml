@@ -11,6 +11,7 @@ services:
     - ./ns/config:/config
     - ./addzones.sh:/root/bin/addzones.sh
     - ./ns/entrypoint.sh:/entrypoint.sh
+    - ./acme/keys/:/etc/knot/acme/
     ports:
     - "${IP_NS}:53:53/udp"
     - "${IP_NS}:53:53/tcp"
