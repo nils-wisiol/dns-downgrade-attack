@@ -1,3 +1,4 @@
+import itertools
 import json
 import logging
 import os
@@ -13,7 +14,7 @@ from tqdm import tqdm
 
 # requirements: dnspython, requests, tqdm
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 ZONE = dns.name.from_text(os.environ.get('ZONE'))
 MITM_A_RR = os.environ.get('MITM_A_RR')
@@ -23,6 +24,7 @@ DESEC_TOKEN = os.environ['DESEC_TOKEN']
 
 IN = dns.rdataclass.from_text("IN")
 DS = dns.rdatatype.from_text("DS")
+DNSKEY = dns.rdatatype.from_text("DNSKEY")
 NS = dns.rdatatype.from_text("NS")
 
 ALGORITHMS = [
@@ -37,9 +39,9 @@ ALGORITHMS = [
 
 
 def run(args, stdin: str = None) -> str:
-    logging.warning(f"Running {args}")
+    logging.debug(f"Running {args}")
     if stdin:
-        logging.warning(f"Sending stdin of length {len(stdin)}")
+        logging.debug(f"Sending stdin of length {len(stdin)}")
         logging.info(f"stdin: {stdin}")
     stdout = subprocess.run(args, stdout=subprocess.PIPE, text=True, input=stdin).stdout
     logging.info(f"stdout: {stdout}")
@@ -72,16 +74,23 @@ def get_ds(zone: dns.name.Name) -> dns.rrset.RRset:
     return dns.rrset.from_text_list(zone, TTL, IN, DS, content)
 
 
+def get_dnskeys(zone: dns.name.Name) -> dns.rrset.RRset:
+    stdout = run(["keymgr", zone.to_text(), "dnskey"])
+    content = [x.split(' ', 2)[-1] for x in stdout.split('\n') if x]
+    logging.debug(content)
+    return dns.rrset.from_text_list(zone, TTL, IN, DNSKEY, content)
+
+
 def delegate(delegatee: dns.name.Name) -> List[dns.rrset.RRset]:
     delegator = delegatee.parent()
-    logging.warning(f"Delegating from {delegator} to {delegatee}")
-    logging.warning(run(["keymgr", delegatee.to_text(), "ds"]))
+    logging.debug(f"Delegating from {delegator} to {delegatee}")
     ds = get_ds(delegatee)
     ns = dns.rrset.from_text(delegatee, TTL, IN, NS, (dns.name.Name(['ns']) + delegator).to_text())
     return [ns, ds]
 
 
-def add_zone(name: dns.name.Name, a_record: str, ns_a_record: str, sign_with: List[dns.dnssec.Algorithm]):
+def add_zone(name: dns.name.Name, a_record: str, ns_a_record: str, sign_with: List[dns.dnssec.Algorithm],
+             remove_dnskeys: List[dns.dnssec.Algorithm]):
     fqdn = name.to_text()
     ns = dns.name.Name(['ns'])
     knotc(
@@ -117,38 +126,57 @@ def add_zone(name: dns.name.Name, a_record: str, ns_a_record: str, sign_with: Li
             """
         )
 
+    if remove_dnskeys:
+        dnskeys = get_dnskeys(name)
+        for dnskey in dnskeys:
+            if dnskey.algorithm in remove_dnskeys:
+                knotc(
+                    f"""
+                    zone-begin "{fqdn}"
+                        zone-unset "{fqdn}" @ DNSKEY {dnskey}
+                    zone-commit "{fqdn}"               
+                    """
+                )
+
 
 zones = [
-    [(alg1, alg2), dns.name.from_text(f"ds{alg1}-ds{alg2}", origin=ZONE)]
-    for alg1 in ALGORITHMS
-    for alg2 in ALGORITHMS
-    if alg2 > alg1
-] + [
-    [(alg1,), dns.name.from_text(f"ds{alg1}", origin=ZONE)]
-    for alg1 in ALGORITHMS
+    (
+        algos, remove_dnskeys,
+        dns.name.from_text(
+            "-".join(
+                [f"ds{a}" for a in sorted(algos)] +
+                [f"dnskey{int(a)}" for a in sorted(set(algos) - set(remove_dnskeys))]
+            ),
+            origin=ZONE
+        ),
+    )
+    for algos in itertools.chain(itertools.combinations(ALGORITHMS, 1), itertools.combinations(ALGORITHMS, 2))
+    for remove_dnskeys in [[a for i, a in enumerate(algos) if v[i]] for v in itertools.product([True, False], repeat=len(algos))]
 ]
 
-for algorithms, name in tqdm(zones):
+for algorithms, remove_dnskeys, name in tqdm(zones):
     add_zone(
         name=name,
         a_record=A_RR,
         ns_a_record=MITM_A_RR,
-        sign_with=algorithms
+        sign_with=algorithms,
+        remove_dnskeys=remove_dnskeys,
     )
 
-delegations = [rrset for _, zone in zones for rrset in delegate(zone)]
-requests.patch(
-    url=f"https://desec.io/api/v1/domains/{ZONE.to_text().rstrip('.')}/rrsets/",
-    headers={
-        'Authorization': f'Token {DESEC_TOKEN}',
-        'Content-Type': 'application/json',
-    },
-    data=json.dumps([
+delegations = [rrset for _, _, zone in zones for rrset in delegate(zone)]
+data = json.dumps([
         {
             'subname': dns.name.Name(rrset.name[:1]).to_text(), 'ttl': 60,
             'type': dns.rdatatype.to_text(rrset.rdtype), 'records': [rr.to_text() for rr in rrset],
         }
         for rrset in delegations
     ], indent=4)
+requests.patch(
+    url=f"https://desec.io/api/v1/domains/{ZONE.to_text().rstrip('.')}/rrsets/",
+    headers={
+        'Authorization': f'Token {DESEC_TOKEN}',
+        'Content-Type': 'application/json',
+    },
+    data=data
 )
 
