@@ -21,7 +21,6 @@ services:
       - IP_NS
       - IP_MITM
       - IP_A
-      - IP_A_EVIL
     command: /entrypoint.sh
     networks:
     - backend
@@ -38,6 +37,7 @@ services:
       AUTH_NS_HOST: ns
       AUTH_NS_PORT: 53
       BE_EVIL: $BE_EVIL
+      IP_A_EVIL: $IP_A_EVIL
     networks:
     - backend
     command: python3 /mitm/mitm.py
