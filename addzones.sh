@@ -3,8 +3,6 @@
 #set -e
 #set -o xtrace
 
-source .env
-
 TTL=0
 ORIGIN=$ZONE
 NS=ns.$ZONE

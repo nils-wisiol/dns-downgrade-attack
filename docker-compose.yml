@@ -20,6 +20,7 @@ services:
       - A_RECORD
       - IP_NS
       - IP_MITM
+      - IP_A
     command: /entrypoint.sh
     networks:
     - backend
