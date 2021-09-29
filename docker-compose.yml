@@ -21,6 +21,7 @@ services:
       - IP_NS
       - IP_MITM
       - IP_A
+      - IP_A_EVIL
     command: /entrypoint.sh
     networks:
     - backend
