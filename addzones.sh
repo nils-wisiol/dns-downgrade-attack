@@ -76,10 +76,24 @@ delegate_manually() {
   done
 }
 
+delegate_broken() {
+  SUBNAME=$1
+  PARENT=$2
+  echo "FURTHER ACTION REQUIRED: Add DS records for parent of $SUBNAME.$PARENT:"
+  echo zone-begin "$PARENT"
+  echo zone-set "$PARENT" "$SUBNAME" $TTL NS "$NS."
+  keymgr "$SUBNAME.$PARENT" ds | cut -d ' ' -f 3- | while read -r DS
+  do
+    echo zone-set "$PARENT" "$SUBNAME" $TTL DS xxx$DS
+  done
+}
+
 create_zone "rsasha256.${ORIGIN}" "rsasha256" "2048" "yes"
 create_zone "ecdsap256sha256.${ORIGIN}" "ecdsap256sha256" "256" "yes"
 create_zone "onlyrsasha256.${ORIGIN}" "rsasha256" "2048" "no"
+create_zone "broken.${ORIGIN}" "rsasha256" "2048" "no"
 
 delegate_manually "rsasha256.${ORIGIN}"
 delegate_manually "ecdsap256sha256.${ORIGIN}"
 delegate_manually "onlyrsasha256.${ORIGIN}"
+delegate_broken "broken.${ORIGIN}"
