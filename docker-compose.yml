@@ -9,18 +9,17 @@ services:
     - nsa_storage:/storage
     - nsa_rundir:/rundir
     - ./ns/config:/config
-    - ./addzones.sh:/root/bin/addzones.sh
+    - ./addzones.py:/root/bin/addzones.py
     - ./ns/entrypoint.sh:/entrypoint.sh
     - ./acme/keys/:/etc/knot/acme/
     ports:
-    - "${IP_NS}:53:53/udp"
-    - "${IP_NS}:53:53/tcp"
+    - "127.42.0.1:53:53/udp"
+    - "127.42.0.1:53:53/tcp"
     environment:
       - ZONE
-      - A_RECORD
-      - IP_NS
-      - IP_MITM
-      - IP_A
+      - A_RR
+      - MITM_A_RR
+      - DESEC_TOKEN
     command: /entrypoint.sh
     networks:
     - backend
@@ -31,8 +30,8 @@ services:
     - ./mitm/:/mitm
     - ./analysis/:/data/
     ports:
-    - "${IP_MITM}:53:53/udp"
-    - "${IP_MITM}:53:53/tcp"
+    - "${MITM_A_RR}:53:53/udp"
+    - "${MITM_A_RR}:53:53/tcp"
     environment:
       AUTH_NS_HOST: ns
       AUTH_NS_PORT: 53

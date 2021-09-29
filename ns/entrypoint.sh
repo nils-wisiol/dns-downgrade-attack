@@ -2,6 +2,10 @@
 set -e
 set -o xtrace
 
+apt update  # TODO move to Dockerfile!
+apt install -y python3 python3-pip
+python3 -m pip install dnspython requests tqdm
+
 if [[ ! -f /etc/knot/acme/acme.key ]]; then
   keymgr tsig generate -t acme_key hmac-sha512 > /etc/knot/acme/acme.key
 fi
