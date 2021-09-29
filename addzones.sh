@@ -37,6 +37,9 @@ create_zone() {
     zone-set "$ZONE" @ $TTL SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 $TTL
     zone-set "$ZONE" @ $TTL NS "ns.$ZONE."
     zone-set "$ZONE" ns $TTL A "$IP_MITM"
+    zone-set "$ZONE" @ $TTL A "$IP_A"
+    zone-set "$ZONE" unsign $TTL A "$IP_A"
+    zone-set "$ZONE" unsign-and-attach $TTL A "$IP_A"
     zone-set "$ZONE" @ $TTL TXT "research test zone"
     zone-set "$ZONE" unsign $TTL TXT "research test zone"
     zone-set "$ZONE" unsign-and-attach $TTL TXT "research test zone"
