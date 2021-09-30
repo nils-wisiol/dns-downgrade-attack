@@ -172,7 +172,12 @@ for a in tqdm(ALGORITHMS):
         remove_dnskeys=[a],
     )
 
-delegations = [rrset for _, _, zone in zones for rrset in delegate(zone)]
+delegations = [
+        rrset for _, _, zone in zones for rrset in delegate(zone)
+    ] + [
+        rrset for a in ALGORITHMS for rrset in delegate(dns.name.from_text(f"broken{a}", origin=ZONE))
+    ]
+
 data = json.dumps([
         {
             'subname': dns.name.Name(rrset.name[:1]).to_text(), 'ttl': 60,
