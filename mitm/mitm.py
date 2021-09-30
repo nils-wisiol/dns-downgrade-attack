@@ -32,7 +32,7 @@ def indent(s, l=4):
 
 def filter_response(a: dns.message.QueryMessage):
     qname = a.question[0].name
-    if not qname[0].startswith(b'mitm'):
+    if not qname[0].lower().startswith(b'mitm'):
         return
 
     def replace_rrsig_algo(section: List, replace_with):
@@ -152,12 +152,13 @@ def filter_response(a: dns.message.QueryMessage):
         'ds': drop_rrsigs,
         'as': add_bogus_rrsig,
         'at': add_bogus_txt,
+        # TODO add modify signature
         'mitm': lambda *args: None,  # no-op
     }
 
     actions = [
         (f, instruction[len(ic):])
-        for instruction in qname[0].decode().split('-')
+        for instruction in qname[0].decode().lower().split('-')
         for ic, f in instruction_codes.items()
         if instruction.startswith(ic)
     ]
