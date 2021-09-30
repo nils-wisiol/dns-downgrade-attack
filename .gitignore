@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+./lib/
 lib64/
 parts/
 sdist/
@@ -137,8 +137,14 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-####
+# IDE
+.idea
 
-tmp
-*.db
-*.sqlite
+# traffic
+traffic/
+
+# performance
+perf.csv
+
+# acme keys
+acme/

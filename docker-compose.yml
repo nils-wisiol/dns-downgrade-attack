@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  ns:
+    #image: cznic/knot:latest  # does not support ed448
+    build: knot-dns
+    volumes:
+    - ./keys:/fixed-keys
+    - nsa_storage:/storage
+    - nsa_rundir:/rundir
+    - ./ns/config:/config
+    - ./addzones.py:/root/bin/addzones.py
+    - ./ns/entrypoint.sh:/entrypoint.sh
+    - ./acme/keys/:/etc/knot/acme/
+    ports:
+    - "127.42.0.1:53:53/udp"
+    - "127.42.0.1:53:53/tcp"
+    environment:
+      - ZONE
+      - A_RR
+      - MITM_A_RR
+      - DESEC_TOKEN
+    command: /entrypoint.sh
+    networks:
+    - backend
+    restart: unless-stopped
+  mitm:
+    build: mitm
+    volumes:
+    - ./mitm/:/mitm
+    - ./analysis/:/data/
+    ports:
+    - "${MITM_A_RR}:53:53/udp"
+    - "${MITM_A_RR}:53:53/tcp"
+    environment:
+      AUTH_NS_HOST: ns
+      AUTH_NS_PORT: 53
+      BE_EVIL: $BE_EVIL
+      IP_A_EVIL: $IP_A_EVIL
+    networks:
+    - backend
+    command: python3 /mitm/mitm.py
+    restart: unless-stopped
+    init: true
+
+networks:
+  backend:
+
+volumes:
+  nsa_storage:
+  nsa_rundir:
+  nsb_storage:
+  nsb_rundir:
