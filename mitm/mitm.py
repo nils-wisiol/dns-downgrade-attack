@@ -252,7 +252,7 @@ HOST, PORT = "0.0.0.0", 53
 BE_EVIL = bool(os.environ.get("BE_EVIL", False))
 
 if __name__ == "__main__":
-    num_processes = int(os.environ.get("ADNSSEC_NUM_PROCESSES", 10))
+    num_processes = int(os.environ.get("ADNSSEC_NUM_PROCESSES", 100))
     processes = [
         multiprocessing.Process(target=handler)
         for handler in [TCPHandler.serve, UDPHandler.serve]
