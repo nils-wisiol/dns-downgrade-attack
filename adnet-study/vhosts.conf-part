@@ -1,0 +1,96 @@
+
+        <VirtualHost *:443>
+            ServerName resolver-downgrade-attack.dedyn.io
+        
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/resolver-downgrade-attack.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/resolver-downgrade-attack.dedyn.io/resolver-downgrade-attack.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/resolver-downgrade-attack.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ecdsap256sha256.resolver-downgrade-attack.dedyn.io
+        
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ecdsap256sha256.resolver-downgrade-attack.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ecdsap256sha256.resolver-downgrade-attack.dedyn.io/ecdsap256sha256.resolver-downgrade-attack.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ecdsap256sha256.resolver-downgrade-attack.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName onlyrsasha256.resolver-downgrade-attack.dedyn.io
+        
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/onlyrsasha256.resolver-downgrade-attack.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/onlyrsasha256.resolver-downgrade-attack.dedyn.io/onlyrsasha256.resolver-downgrade-attack.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/onlyrsasha256.resolver-downgrade-attack.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName rsasha256.resolver-downgrade-attack.dedyn.io
+        
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/rsasha256.resolver-downgrade-attack.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/rsasha256.resolver-downgrade-attack.dedyn.io/rsasha256.resolver-downgrade-attack.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/rsasha256.resolver-downgrade-attack.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName broken.resolver-downgrade-attack.dedyn.io
+        
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/broken.resolver-downgrade-attack.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/broken.resolver-downgrade-attack.dedyn.io/broken.resolver-downgrade-attack.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/broken.resolver-downgrade-attack.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
