@@ -163,15 +163,6 @@ for algorithms, remove_dnskeys, name in tqdm(zones):
         remove_dnskeys=remove_dnskeys,
     )
 
-for a in tqdm(ALGORITHMS):
-    add_zone(
-        name=dns.name.from_text(f"broken{a}", origin=ZONE),
-        a_record=A_RR,
-        ns_a_record=MITM_A_RR,
-        sign_with=[a],
-        remove_dnskeys=[a],
-    )
-
 delegations = [rrset for _, _, zone in zones for rrset in delegate(zone)]
 data = json.dumps([
         {
