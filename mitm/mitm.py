@@ -146,13 +146,35 @@ def filter_response(a: dns.message.QueryMessage):
                 strings=(b"evil",),
             ))
 
+    def modify_signatures(section, *args):
+        rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
+        for rrsig in rrsigs:
+            section.remove(rrsig)
+            new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
+            section.append(new_rrsig)
+            for rr in rrsig:
+                s = rr.signature
+                new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
+                    rdclass=rr.rdclass,
+                    rdtype=rr.rdtype,
+                    type_covered=rr.type_covered,
+                    algorithm=rr.algorithm,
+                    labels=rr.labels,
+                    original_ttl=rr.original_ttl,
+                    expiration=rr.expiration,
+                    inception=rr.inception,
+                    key_tag=rr.key_tag,
+                    signer=rr.signer,
+                    signature=s[:-1] + bytes([s[-1] ^ 0x1]),  # flip last bit
+                ))
+
     instruction_codes = {
         'rs': replace_rrsig_algo,
         'ra': replace_a,
         'ds': drop_rrsigs,
         'as': add_bogus_rrsig,
         'at': add_bogus_txt,
-        # TODO add modify signature
+        'ms': modify_signatures,
         'mitm': lambda *args: None,  # no-op
     }
 
