@@ -36,7 +36,7 @@ def filter_response(a: dns.message.QueryMessage):
         return
 
     def replace_rrsig_algo(section: List, replace_with):
-        replace_with = dns.dnssec.Algorithm(int(replace_with))
+        replace_with = int(replace_with)
         rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
         for rrsig in rrsigs:
             section.remove(rrsig)
