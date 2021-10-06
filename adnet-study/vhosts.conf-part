@@ -1,17 +1,17 @@
 
         <VirtualHost *:443>
-            ServerName resolver-downgrade-attack.dedyn.io
+            ServerName downgrade.dedyn.io
         
             ServerAdmin webmaster@localhost
-            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            DocumentRoot /var/www/downgrade.dedyn.io
             ErrorLog ${APACHE_LOG_DIR}/error.log
             CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
-            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
         
             SSLEngine On
-            SSLCertificateFile    /etc/apache2/ssl/resolver-downgrade-attack.dedyn.io/fullchain.cer
-            SSLCertificateKeyFile /etc/apache2/ssl/resolver-downgrade-attack.dedyn.io/resolver-downgrade-attack.dedyn.io.key
-            SSLCACertificateFile  /etc/apache2/ssl/resolver-downgrade-attack.dedyn.io/ca.cer
+            SSLCertificateFile    /etc/apache2/ssl/downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/downgrade.dedyn.io/downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/downgrade.dedyn.io/ca.cer
 
             ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
             ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
@@ -19,18 +19,19 @@
         </VirtualHost>
         
         <VirtualHost *:443>
-            ServerName ecdsap256sha256.resolver-downgrade-attack.dedyn.io
-        
+            ServerName ds13-dnskey13.downgrade.dedyn.io
+            ServerAlias *.ds13-dnskey13.downgrade.dedyn.io
+            
             ServerAdmin webmaster@localhost
-            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            DocumentRoot /var/www/downgrade.dedyn.io
             ErrorLog ${APACHE_LOG_DIR}/error.log
             CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
-            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
         
             SSLEngine On
-            SSLCertificateFile    /etc/apache2/ssl/ecdsap256sha256.resolver-downgrade-attack.dedyn.io/fullchain.cer
-            SSLCertificateKeyFile /etc/apache2/ssl/ecdsap256sha256.resolver-downgrade-attack.dedyn.io/ecdsap256sha256.resolver-downgrade-attack.dedyn.io.key
-            SSLCACertificateFile  /etc/apache2/ssl/ecdsap256sha256.resolver-downgrade-attack.dedyn.io/ca.cer
+            SSLCertificateFile    /etc/apache2/ssl/ds13-dnskey13.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds13-dnskey13.downgrade.dedyn.io/ds13-dnskey13.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds13-dnskey13.downgrade.dedyn.io/ca.cer
 
             ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
             ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
@@ -38,18 +39,19 @@
         </VirtualHost>
         
         <VirtualHost *:443>
-            ServerName onlyrsasha256.resolver-downgrade-attack.dedyn.io
-        
+            ServerName ds13-ds15-dnskey13-dnskey15.downgrade.dedyn.io
+            ServerAlias *.ds13-ds15-dnskey13-dnskey15.downgrade.dedyn.io
+            
             ServerAdmin webmaster@localhost
-            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            DocumentRoot /var/www/downgrade.dedyn.io
             ErrorLog ${APACHE_LOG_DIR}/error.log
             CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
-            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
         
             SSLEngine On
-            SSLCertificateFile    /etc/apache2/ssl/onlyrsasha256.resolver-downgrade-attack.dedyn.io/fullchain.cer
-            SSLCertificateKeyFile /etc/apache2/ssl/onlyrsasha256.resolver-downgrade-attack.dedyn.io/onlyrsasha256.resolver-downgrade-attack.dedyn.io.key
-            SSLCACertificateFile  /etc/apache2/ssl/onlyrsasha256.resolver-downgrade-attack.dedyn.io/ca.cer
+            SSLCertificateFile    /etc/apache2/ssl/ds13-ds15-dnskey13-dnskey15.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds13-ds15-dnskey13-dnskey15.downgrade.dedyn.io/ds13-ds15-dnskey13-dnskey15.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds13-ds15-dnskey13-dnskey15.downgrade.dedyn.io/ca.cer
 
             ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
             ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
@@ -57,18 +59,19 @@
         </VirtualHost>
         
         <VirtualHost *:443>
-            ServerName rsasha256.resolver-downgrade-attack.dedyn.io
-        
+            ServerName ds13-ds15-dnskey15.downgrade.dedyn.io
+            ServerAlias *.ds13-ds15-dnskey15.downgrade.dedyn.io
+            
             ServerAdmin webmaster@localhost
-            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            DocumentRoot /var/www/downgrade.dedyn.io
             ErrorLog ${APACHE_LOG_DIR}/error.log
             CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
-            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
         
             SSLEngine On
-            SSLCertificateFile    /etc/apache2/ssl/rsasha256.resolver-downgrade-attack.dedyn.io/fullchain.cer
-            SSLCertificateKeyFile /etc/apache2/ssl/rsasha256.resolver-downgrade-attack.dedyn.io/rsasha256.resolver-downgrade-attack.dedyn.io.key
-            SSLCACertificateFile  /etc/apache2/ssl/rsasha256.resolver-downgrade-attack.dedyn.io/ca.cer
+            SSLCertificateFile    /etc/apache2/ssl/ds13-ds15-dnskey15.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds13-ds15-dnskey15.downgrade.dedyn.io/ds13-ds15-dnskey15.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds13-ds15-dnskey15.downgrade.dedyn.io/ca.cer
 
             ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
             ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
@@ -76,18 +79,379 @@
         </VirtualHost>
         
         <VirtualHost *:443>
-            ServerName broken.resolver-downgrade-attack.dedyn.io
-        
+            ServerName ds13-ds16-dnskey13-dnskey16.downgrade.dedyn.io
+            ServerAlias *.ds13-ds16-dnskey13-dnskey16.downgrade.dedyn.io
+            
             ServerAdmin webmaster@localhost
-            DocumentRoot /var/www/resolver-downgrade-attack.dedyn.io
+            DocumentRoot /var/www/downgrade.dedyn.io
             ErrorLog ${APACHE_LOG_DIR}/error.log
             CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
-            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
         
             SSLEngine On
-            SSLCertificateFile    /etc/apache2/ssl/broken.resolver-downgrade-attack.dedyn.io/fullchain.cer
-            SSLCertificateKeyFile /etc/apache2/ssl/broken.resolver-downgrade-attack.dedyn.io/broken.resolver-downgrade-attack.dedyn.io.key
-            SSLCACertificateFile  /etc/apache2/ssl/broken.resolver-downgrade-attack.dedyn.io/ca.cer
+            SSLCertificateFile    /etc/apache2/ssl/ds13-ds16-dnskey13-dnskey16.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds13-ds16-dnskey13-dnskey16.downgrade.dedyn.io/ds13-ds16-dnskey13-dnskey16.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds13-ds16-dnskey13-dnskey16.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds13-ds16-dnskey16.downgrade.dedyn.io
+            ServerAlias *.ds13-ds16-dnskey16.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds13-ds16-dnskey16.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds13-ds16-dnskey16.downgrade.dedyn.io/ds13-ds16-dnskey16.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds13-ds16-dnskey16.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds15-ds16-dnskey15.downgrade.dedyn.io
+            ServerAlias *.ds15-ds16-dnskey15.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds15-ds16-dnskey15.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds15-ds16-dnskey15.downgrade.dedyn.io/ds15-ds16-dnskey15.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds15-ds16-dnskey15.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds16.downgrade.dedyn.io
+            ServerAlias *.ds16.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds16.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds16.downgrade.dedyn.io/ds16.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds16.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-dnskey8.downgrade.dedyn.io
+            ServerAlias *.ds8-dnskey8.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-dnskey8.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-dnskey8.downgrade.dedyn.io/ds8-dnskey8.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-dnskey8.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-ds13-dnskey13.downgrade.dedyn.io
+            ServerAlias *.ds8-ds13-dnskey13.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-ds13-dnskey13.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-ds13-dnskey13.downgrade.dedyn.io/ds8-ds13-dnskey13.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-ds13-dnskey13.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-ds13-dnskey8.downgrade.dedyn.io
+            ServerAlias *.ds8-ds13-dnskey8.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-ds13-dnskey8.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-ds13-dnskey8.downgrade.dedyn.io/ds8-ds13-dnskey8.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-ds13-dnskey8.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-ds13-dnskey8-dnskey13.downgrade.dedyn.io
+            ServerAlias *.ds8-ds13-dnskey8-dnskey13.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-ds13-dnskey8-dnskey13.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-ds13-dnskey8-dnskey13.downgrade.dedyn.io/ds8-ds13-dnskey8-dnskey13.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-ds13-dnskey8-dnskey13.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-ds15-dnskey15.downgrade.dedyn.io
+            ServerAlias *.ds8-ds15-dnskey15.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-ds15-dnskey15.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-ds15-dnskey15.downgrade.dedyn.io/ds8-ds15-dnskey15.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-ds15-dnskey15.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-ds15-dnskey8-dnskey15.downgrade.dedyn.io
+            ServerAlias *.ds8-ds15-dnskey8-dnskey15.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-ds15-dnskey8-dnskey15.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-ds15-dnskey8-dnskey15.downgrade.dedyn.io/ds8-ds15-dnskey8-dnskey15.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-ds15-dnskey8-dnskey15.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-ds16-dnskey16.downgrade.dedyn.io
+            ServerAlias *.ds8-ds16-dnskey16.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-ds16-dnskey16.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-ds16-dnskey16.downgrade.dedyn.io/ds8-ds16-dnskey16.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-ds16-dnskey16.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-ds16-dnskey8-dnskey16.downgrade.dedyn.io
+            ServerAlias *.ds8-ds16-dnskey8-dnskey16.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-ds16-dnskey8-dnskey16.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-ds16-dnskey8-dnskey16.downgrade.dedyn.io/ds8-ds16-dnskey8-dnskey16.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-ds16-dnskey8-dnskey16.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds5-dnskey5.downgrade.dedyn.io
+            ServerAlias *.ds5-dnskey5.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds5-dnskey5.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds5-dnskey5.downgrade.dedyn.io/ds5-dnskey5.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds5-dnskey5.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds8-dnskey8.downgrade.dedyn.io
+            ServerAlias *.ds8-dnskey8.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds8-dnskey8.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds8-dnskey8.downgrade.dedyn.io/ds8-dnskey8.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds8-dnskey8.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds10-dnskey10.downgrade.dedyn.io
+            ServerAlias *.ds10-dnskey10.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds10-dnskey10.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds10-dnskey10.downgrade.dedyn.io/ds10-dnskey10.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds10-dnskey10.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds13-dnskey13.downgrade.dedyn.io
+            ServerAlias *.ds13-dnskey13.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds13-dnskey13.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds13-dnskey13.downgrade.dedyn.io/ds13-dnskey13.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds13-dnskey13.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds14-dnskey14.downgrade.dedyn.io
+            ServerAlias *.ds14-dnskey14.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds14-dnskey14.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds14-dnskey14.downgrade.dedyn.io/ds14-dnskey14.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds14-dnskey14.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds15-dnskey15.downgrade.dedyn.io
+            ServerAlias *.ds15-dnskey15.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds15-dnskey15.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds15-dnskey15.downgrade.dedyn.io/ds15-dnskey15.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds15-dnskey15.downgrade.dedyn.io/ca.cer
+
+            ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
+            ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"
+
+        </VirtualHost>
+        
+        <VirtualHost *:443>
+            ServerName ds16-dnskey16.downgrade.dedyn.io
+            ServerAlias *.ds16-dnskey16.downgrade.dedyn.io
+            
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/downgrade.dedyn.io
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access-downg.log combined
+            CustomLog ${APACHE_LOG_DIR}/access-downg.json downg2
+        
+            SSLEngine On
+            SSLCertificateFile    /etc/apache2/ssl/ds16-dnskey16.downgrade.dedyn.io/fullchain.cer
+            SSLCertificateKeyFile /etc/apache2/ssl/ds16-dnskey16.downgrade.dedyn.io/ds16-dnskey16.downgrade.dedyn.io.key
+            SSLCACertificateFile  /etc/apache2/ssl/ds16-dnskey16.downgrade.dedyn.io/ca.cer
 
             ProxyPass        "/post/" "http://127.0.0.1:5000/post/"
             ProxyPassReverse "/post/" "http://127.0.0.1:5000/post/"

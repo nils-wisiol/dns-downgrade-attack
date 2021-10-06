@@ -1,20 +1,50 @@
-STUDY_DOMAIN = "resolver-downgrade-attack.dedyn.io"
+# STUDY_DOMAIN = "resolver-downgrade-attack.dedyn.io"
+# TEST_DOMAINS = [
+#   "ecdsap256sha256",
+#   "onlyrsasha256",
+#   "rsasha256",
+#   "broken",
+# ]
+
+
+STUDY_DOMAIN = "downgrade.dedyn.io"
 TEST_DOMAINS = [
-  "ecdsap256sha256",
-  "onlyrsasha256",
-  "rsasha256",
-  "broken",
+  "ds13-dnskey13",
+  "ds13-ds15-dnskey13-dnskey15",
+  "ds13-ds15-dnskey15",
+  "ds13-ds16-dnskey13-dnskey16",
+  "ds13-ds16-dnskey16",
+  "ds15-ds16-dnskey15",
+  "ds16",
+  "ds8-dnskey8",
+  "ds8-ds13-dnskey13",
+  "ds8-ds13-dnskey8",
+  "ds8-ds13-dnskey8-dnskey13",
+  "ds8-ds15-dnskey15",
+  "ds8-ds15-dnskey8-dnskey15",
+  "ds8-ds16-dnskey16",
+  "ds8-ds16-dnskey8-dnskey16",
+
+  "ds5-dnskey5",
+  "ds8-dnskey8",
+  "ds10-dnskey10",
+  "ds13-dnskey13",
+  "ds14-dnskey14",
+  "ds15-dnskey15",
+  "ds16-dnskey16",
 ]
+
 
 """
 This script assumes files/directories named according to acme.sh policy when using ZeroSSL CA.
 """
 
 
-DOCROOT = "/var/www/resolver-downgrade-attack.dedyn.io"
+# DOCROOT = "/var/www/resolver-downgrade-attack.dedyn.io"
+DOCROOT = "/var/www/downgrade.dedyn.io"
 LOGFILE_COMBINED = "access-downg.log"
 LOGFILE_JSON = "access-downg.json"
-LOG_FORMAT_JSON = "downg"
+LOG_FORMAT_JSON = "downg2"
 APACHE_LOG_DIR = "{APACHE_LOG_DIR}"  # hacky but does the job
 
 def gen_vhost_config(testdomain="", study_domain=STUDY_DOMAIN):
@@ -29,11 +59,11 @@ def gen_vhost_config(testdomain="", study_domain=STUDY_DOMAIN):
             ServerName {name}
         """
         )
-    # if testdomain != "":
-    #     conflines.append(
-    #         f"""ServerAlias *.{name}
-    #         """
-    #     )
+    if testdomain != "":
+        conflines.append(
+            f"""    ServerAlias *.{name}
+            """
+        )
     conflines.append(
         f"""
             ServerAdmin webmaster@localhost
