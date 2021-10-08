@@ -42,6 +42,10 @@ services:
     command: python3 /mitm/mitm.py
     restart: unless-stopped
     init: true
+    logging:
+      options:
+        max-size: "1g"
+        max-file: "1"
 
 networks:
   backend:
