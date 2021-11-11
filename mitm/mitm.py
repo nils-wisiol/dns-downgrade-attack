@@ -1,10 +1,14 @@
+import datetime
 import logging
 import multiprocessing
 import os
 import socket
 import socketserver
+import sqlite3
 import struct
+import time
 import traceback
+from multiprocessing import Manager, Process
 from typing import Optional, List
 
 import dns.dnssec
@@ -13,12 +17,37 @@ import dns.query
 import dns.rdtypes.ANY
 import dns.rrset
 
+HOST, PORT = "0.0.0.0", 53
+BE_EVIL = bool(os.environ.get("BE_EVIL", False))
+LOG_DB_NAME = f'/data/requests_{datetime.datetime.now().isoformat()}.sqlite3'.replace(":", "_")
+
+MANAGER = Manager()
+REQUESTS_QUEUE = MANAGER.Queue()
+LOG_DB_TABLE_NAME = "requests"
+SQL_INIT_STMT = (
+    f"CREATE TABLE IF NOT EXISTS {LOG_DB_TABLE_NAME} ("
+    f"id integer PRIMARY KEY, "
+    f"date text NOT NULL, "
+    f"timestamp real NOT NULL, "
+    f"host text NOT NULL, "
+    f"port integer NOT NULL, "
+    f"qname text NOT NULL, "
+    f"qtype text NOT NULL, "
+    f"qclass text NOT NULL, "
+    f"mdump blob"
+    f");"
+)
+SQL_INSERT_STMT = (
+    f'INSERT INTO {LOG_DB_TABLE_NAME} (date, timestamp, host, port, qname, qtype, qclass, mdump) '
+    f'VALUES (?, ?, ?, ?, ?, ?, ?, ?);'
+)
+
 IN = dns.rdataclass.from_text("IN")
 TXT = dns.rdatatype.from_text("TXT")
 A = dns.rdatatype.from_text("A")
 RRSIG = dns.rdatatype.from_text("RRSIG")
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 auth_ns_addr = socket.gethostbyname(os.environ.get('AUTH_NS_HOST', 'ns'))
@@ -196,23 +225,24 @@ def filter_response(a: dns.message.QueryMessage):
 
 
 def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
-    logger.info(f"accepted packet at pid {os.getpid()}")
+    logger.debug(f"accepted packet at pid {os.getpid()}")
     m = dns.message.from_wire(message)
     if m.opcode() != dns.opcode.Opcode.QUERY:
         logger.warning(f"Message from {host}:{port} wasn't a query: {dns.opcode.to_text(m.opcode())}")
         return
     q = m
-    logger.info(f"Query {q.id} from {host}:{port}")
+    logger.debug(f"Query {q.id} from {host}:{port}")
     logger.info(indent(q.to_text()))
-    logger.info(f"Forwarding query {q.id} from {host}:{port} ...")
+    REQUESTS_QUEUE.put((time.time(), m, host, port, message))  # for SQLite3 Logging
+    logger.debug(f"Forwarding query {q.id} from {host}:{port} ...")
     a = dns.query.tcp(q, where=auth_ns_addr, port=auth_ns_port, timeout=1)
-    logger.info(f"Received upstream answer for {q.id}, {host}:{port} ...")
+    logger.debug(f"Received upstream answer for {q.id}, {host}:{port} ...")
     logger.info(indent(a.to_text()))
 
     if BE_EVIL:
         filter_response(a)
 
-    logger.info(f"Forwarding answer {q.id} for {host}:{port} ...")
+    logger.debug(f"Forwarding answer {q.id} for {host}:{port} ...")
     logger.info(indent(a.to_text()))
     return a.to_wire()
 
@@ -237,7 +267,7 @@ class Handler(socketserver.BaseRequestHandler):
 
     @classmethod
     def serve(cls):
-        logger.info(f"starting {cls.SERVER} in pid {os.getpid()}...")
+        logger.warning(f"starting {cls.SERVER} in pid {os.getpid()}...")
         with cls.SERVER((HOST, PORT), cls) as server:
             server.serve_forever()
 
@@ -271,8 +301,36 @@ class TCPHandler(Handler):
             self.request.sendall(length + response)
 
 
-HOST, PORT = "0.0.0.0", 53
-BE_EVIL = bool(os.environ.get("BE_EVIL", False))
+class SqliteLogger(Process):
+    def __init__(self, db_name=LOG_DB_NAME) -> None:
+        super(SqliteLogger, self).__init__()
+        self.con = sqlite3.connect(db_name)
+        self.cur = self.con.cursor()
+        self.cur.execute(SQL_INIT_STMT)
+
+    def run(self):
+        while True:
+            try:
+                timestamp, message, host, port, message_bytes = REQUESTS_QUEUE.get()
+                date = str(datetime.datetime.fromtimestamp(timestamp))
+                query = message.question[0]
+                qname = str(query.name)
+                qtype = dns.rdatatype.to_text(query.rdtype)
+                qclass = dns.rdataclass.to_text(query.rdclass)
+                logger.debug(
+                    f"date={date}({type(date)}), "
+                    f"timestamp={timestamp}({type(timestamp)}), "
+                    f"host={host}({type(host)}), "
+                    f"port={port}({type(port)}), "
+                    f"qname={qname}({type(qname)}), "
+                    f"qclass={qclass}({type(qclass)}, "
+                    f"len(message_bytes)={len(message_bytes)}"
+                )
+                self.cur.execute(SQL_INSERT_STMT, (date, timestamp, host, port, qname, qtype, qclass, message_bytes))
+                self.con.commit()
+            except Exception as e:
+                logger.warning(f"SqliteLogger: {str(e)}")
+
 
 if __name__ == "__main__":
     num_processes = int(os.environ.get("ADNSSEC_NUM_PROCESSES", 100))
@@ -281,8 +339,12 @@ if __name__ == "__main__":
         for handler in [TCPHandler.serve, UDPHandler.serve]
         for _ in range(num_processes)
     ]
+    sqliteLogger = SqliteLogger()
+    sqliteLogger.start()
     for p in processes:
         logger.info(f"Starting {p} from pid {os.getpid()}")
         p.start()
     for p in processes:
         p.join()
+    REQUESTS_QUEUE.join()
+    sqliteLogger.close()
