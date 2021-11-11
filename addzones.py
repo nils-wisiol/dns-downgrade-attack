@@ -103,7 +103,7 @@ def add_zone(name: dns.name.Name, a_record: str, ns_a_record: str, sign_with: Li
         
         zone-begin "{fqdn}"
             zone-set "{fqdn}" @ {TTL} SOA get.desec.io. get.desec.io. 2021014779 86400 86400 2419200 {TTL}
-            zone-set "{fqdn}" @ {TTL} NS "{(ns + name).to_text()}"
+            zone-set "{fqdn}" @ {TTL} NS "{(ns + name.parent()).to_text()}"
             zone-set "{fqdn}" ns {TTL} A "{ns_a_record}"
             zone-set "{fqdn}" @ {TTL} A "{a_record}"
             zone-set "{fqdn}" * {TTL} A "{a_record}"
