@@ -148,3 +148,7 @@ perf.csv
 
 # acme keys
 acme/
+
+# sqlite databases
+analysis/
+
