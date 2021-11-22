@@ -98,6 +98,19 @@ def filter_response(a: dns.message.QueryMessage):
                 address=IP_A_EVIL,
             ))
 
+    def replace_txt(section, *args):
+        txt_rrsets = [rrset for rrset in section if rrset.rdtype == TXT]
+        for txt_rrset in txt_rrsets:
+            section.remove(txt_rrset)
+            new_txt = dns.rrset.RRset(name=txt_rrset.name, rdclass=txt_rrset.rdclass, rdtype=txt_rrset.rdtype, covers=txt_rrset.covers)
+            section.append(new_txt)
+            for txt in txt_rrset:
+                new_txt.add(dns.rdtypes.ANY.TXT.TXT(
+                    rdclass=txt_rrset.rdclass,
+                    rdtype=txt_rrset.rdtype,
+                    strings=tuple((b"evil " * ((len(t) // 5) + 1))[:len(t)] for t in txt.strings),
+                ))
+
     def drop_rrsigs(section, algorithm):
         algorithm = dns.dnssec.Algorithm(int(algorithm))
         rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
@@ -200,6 +213,7 @@ def filter_response(a: dns.message.QueryMessage):
     instruction_codes = {
         'rs': replace_rrsig_algo,
         'ra': replace_a,
+        'rt': replace_txt,
         'ds': drop_rrsigs,
         'as': add_bogus_rrsig,
         'at': add_bogus_txt,
