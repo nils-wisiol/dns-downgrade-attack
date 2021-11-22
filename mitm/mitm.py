@@ -68,9 +68,8 @@ def filter_response(a: dns.message.QueryMessage):
         replace_with = int(replace_with)
         rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
         for rrsig in rrsigs:
-            section.remove(rrsig)
             new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
-            section.append(new_rrsig)
+            section[section.index(rrsig)] = new_rrsig
             for rr in rrsig:
                 new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
                     rdclass=rr.rdclass,
@@ -89,9 +88,8 @@ def filter_response(a: dns.message.QueryMessage):
     def replace_a(section, *args):
         a_rrsets = [rrset for rrset in section if rrset.rdtype == A]
         for a in a_rrsets:
-            section.remove(a)
             new_a = dns.rrset.RRset(name=a.name, rdclass=a.rdclass, rdtype=a.rdtype, covers=a.covers)
-            section.append(new_a)
+            section[section.index(a)] = new_a
             new_a.add(dns.rdtypes.IN.A.A(
                 rdclass=a[0].rdclass,
                 rdtype=a[0].rdtype,
@@ -101,9 +99,8 @@ def filter_response(a: dns.message.QueryMessage):
     def replace_txt(section, *args):
         txt_rrsets = [rrset for rrset in section if rrset.rdtype == TXT]
         for txt_rrset in txt_rrsets:
-            section.remove(txt_rrset)
             new_txt = dns.rrset.RRset(name=txt_rrset.name, rdclass=txt_rrset.rdclass, rdtype=txt_rrset.rdtype, covers=txt_rrset.covers)
-            section.append(new_txt)
+            section[section.index(txt_rrset)] = new_txt
             for txt in txt_rrset:
                 new_txt.add(dns.rdtypes.ANY.TXT.TXT(
                     rdclass=txt_rrset.rdclass,
@@ -115,7 +112,6 @@ def filter_response(a: dns.message.QueryMessage):
         algorithm = dns.dnssec.Algorithm(int(algorithm))
         rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
         for rrsig in rrsigs:
-            section.remove(rrsig)
             new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
             for rr in rrsig:
                 if rr.algorithm != algorithm:
@@ -133,15 +129,16 @@ def filter_response(a: dns.message.QueryMessage):
                         signature=rr.signature,
                     ))
             if len(new_rrsig) > 0:
-                section.append(new_rrsig)
+                section[section.index(rrsig)] = new_rrsig
+            else:
+                section.remove(rrsig)
 
     def add_bogus_rrsig(section, algorithm):
         algorithm = dns.dnssec.Algorithm(int(algorithm))
         rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
         for rrsig in rrsigs:
-            section.remove(rrsig)
             new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
-            section.append(new_rrsig)
+            section[section.index(rrsig)] = new_rrsig
             for rr in rrsig:
                 new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
                     rdclass=rr.rdclass,
@@ -173,9 +170,8 @@ def filter_response(a: dns.message.QueryMessage):
     def add_bogus_txt(section, *args):
         txts = [rrset for rrset in section if rrset.rdtype == TXT]
         for txt in txts:
-            section.remove(txt)
             new_txt = dns.rrset.RRset(name=txt.name, rdclass=txt.rdclass, rdtype=txt.rdtype, covers=txt.covers)
-            section.append(new_txt)
+            section[section.index(txt)] = new_txt
             for rr in txt:
                 new_txt.add(dns.rdtypes.ANY.TXT.TXT(
                     rdclass=rr.rdclass,
@@ -191,9 +187,8 @@ def filter_response(a: dns.message.QueryMessage):
     def modify_signatures(section, *args):
         rrsigs = [rrset for rrset in section if rrset.rdtype == RRSIG]
         for rrsig in rrsigs:
-            section.remove(rrsig)
             new_rrsig = dns.rrset.RRset(name=rrsig.name, rdclass=rrsig.rdclass, rdtype=rrsig.rdtype, covers=rrsig.covers)
-            section.append(new_rrsig)
+            section[section.index(rrsig)] = new_rrsig
             for rr in rrsig:
                 s = rr.signature
                 new_rrsig.add(dns.rdtypes.ANY.RRSIG.RRSIG(
