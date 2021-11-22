@@ -34,12 +34,13 @@ SQL_INIT_STMT = (
     f"qname text NOT NULL, "
     f"qtype text NOT NULL, "
     f"qclass text NOT NULL, "
+    f"first_changed_byte integer NULL, "
     f"mdump blob"
     f");"
 )
 SQL_INSERT_STMT = (
-    f'INSERT INTO {LOG_DB_TABLE_NAME} (date, timestamp, host, port, qname, qtype, qclass, mdump) '
-    f'VALUES (?, ?, ?, ?, ?, ?, ?, ?);'
+    f'INSERT INTO {LOG_DB_TABLE_NAME} (date, timestamp, host, port, qname, qtype, qclass, first_changed_byte, mdump) '
+    f'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);'
 )
 
 IN = dns.rdataclass.from_text("IN")
@@ -242,18 +243,28 @@ def digest(message: bytes, host: str, port: int) -> Optional[bytes]:
     q = m
     logger.debug(f"Query {q.id} from {host}:{port}")
     logger.info(indent(q.to_text()))
-    REQUESTS_QUEUE.put((time.time(), m, host, port, message))  # for SQLite3 Logging
     logger.debug(f"Forwarding query {q.id} from {host}:{port} ...")
     a = dns.query.tcp(q, where=auth_ns_addr, port=auth_ns_port, timeout=1)
+    upstream_answer = a.to_wire()
     logger.debug(f"Received upstream answer for {q.id}, {host}:{port} ...")
     logger.info(indent(a.to_text()))
 
     if BE_EVIL:
         filter_response(a)
 
+    # analysis upstream answer vs final answer
+    final_answer = a.to_wire()
+    common_prefix_length = len(os.path.commonprefix((upstream_answer, final_answer)))
+    first_changed_byte = common_prefix_length if common_prefix_length < len(final_answer) else None
+    # same_length = len(upstream_answer) == len(final_answer)
+    # identical_bytes = sum(x == y for x, y in zip(upstream_answer, final_answer))
+    logger.debug(f"First changed byte in filtered response: {first_changed_byte}")
+
     logger.debug(f"Forwarding answer {q.id} for {host}:{port} ...")
     logger.info(indent(a.to_text()))
-    return a.to_wire()
+
+    REQUESTS_QUEUE.put((time.time(), m, host, port, first_changed_byte, message))  # for SQLite3 Logging
+    return final_answer
 
 
 class ReusePortServer:
@@ -320,7 +331,7 @@ class SqliteLogger(Process):
     def run(self):
         while True:
             try:
-                timestamp, message, host, port, message_bytes = REQUESTS_QUEUE.get()
+                timestamp, message, host, port, first_changed_byte, message_bytes = REQUESTS_QUEUE.get()
                 date = str(datetime.datetime.fromtimestamp(timestamp))
                 query = message.question[0]
                 qname = str(query.name)
@@ -333,9 +344,13 @@ class SqliteLogger(Process):
                     f"port={port}({type(port)}), "
                     f"qname={qname}({type(qname)}), "
                     f"qclass={qclass}({type(qclass)}, "
+                    f"first_changed_byte={first_changed_byte}({type(first_changed_byte)}, "
                     f"len(message_bytes)={len(message_bytes)}"
                 )
-                self.cur.execute(SQL_INSERT_STMT, (date, timestamp, host, port, qname, qtype, qclass, message_bytes))
+                self.cur.execute(
+                    SQL_INSERT_STMT,
+                    (date, timestamp, host, port, qname, qtype, qclass, first_changed_byte, message_bytes),
+                )
                 self.con.commit()
             except Exception as e:
                 logger.warning(f"SqliteLogger: {str(e)}")
