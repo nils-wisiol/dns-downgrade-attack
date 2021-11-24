@@ -47,6 +47,7 @@ IN = dns.rdataclass.from_text("IN")
 TXT = dns.rdatatype.from_text("TXT")
 A = dns.rdatatype.from_text("A")
 RRSIG = dns.rdatatype.from_text("RRSIG")
+DS = dns.rdatatype.from_text("DS")
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -107,6 +108,25 @@ def filter_response(a: dns.message.QueryMessage):
                     rdclass=txt_rrset.rdclass,
                     rdtype=txt_rrset.rdtype,
                     strings=tuple((b"evil " * ((len(t) // 5) + 1))[:len(t)] for t in txt.strings),
+                ))
+
+    def replace_ds(section, *args):
+        # replaces any DS RRset with values defined below
+        ds_rrsets = [rrset for rrset in section if rrset.rdtype == DS]
+        for ds_rrset in ds_rrsets:
+            new_ds = dns.rrset.RRset(name=ds_rrset.name, rdclass=ds_rrset.rdclass, rdtype=ds_rrset.rdtype, covers=ds_rrset.covers)
+            section[section.index(ds_rrset)] = new_ds
+            for key_tag, algorithm, digest_type, digest in [
+                (18351, 13, 2, bytes.fromhex("bd638ab1d0259d76c435acfeab0028adbd273a358d154549565812f333454303")),
+                (18351, 13, 4, bytes.fromhex("000c3f7da476c17bccff160f7536ba4df5980b030ff65cc8c64c82dadd561dfd5fdd6b253fdf20f9147bcb5d002eef07")),
+            ]:
+                new_ds.add(dns.rdtypes.ANY.DS.DS(
+                    rdclass=ds_rrset.rdclass,
+                    rdtype=ds_rrset.rdtype,
+                    key_tag=key_tag,
+                    algorithm=algorithm,
+                    digest_type=digest_type,
+                    digest=digest,
                 ))
 
     def drop_rrsigs(section, algorithm):
@@ -210,6 +230,7 @@ def filter_response(a: dns.message.QueryMessage):
         'rs': replace_rrsig_algo,
         'ra': replace_a,
         'rt': replace_txt,
+        'rd': replace_ds,
         'ds': drop_rrsigs,
         'as': add_bogus_rrsig,
         'at': add_bogus_txt,

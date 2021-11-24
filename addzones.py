@@ -109,6 +109,10 @@ def add_zone(name: dns.name.Name, a_record: str, ns_a_record: str, sign_with: Li
             zone-set "{fqdn}" * {TTL} A "{a_record}"
             zone-set "{fqdn}" @ {TTL} TXT "research test zone"
             zone-set "{fqdn}" * {TTL} TXT "research test zone"
+            zone-set "{fqdn}" mitm-rs16-rd {TTL} NS "ns1.desec.io."
+            zone-set "{fqdn}" mitm-rs16-rd {TTL} NS "ns2.desec.org."
+            zone-set "{fqdn}" mitm-rs16-rd {TTL} DS "29449 13 2 ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            zone-set "{fqdn}" mitm-rs16-rd {TTL} DS "29449 13 4 ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         zone-commit "{fqdn}"        
         """
     )
