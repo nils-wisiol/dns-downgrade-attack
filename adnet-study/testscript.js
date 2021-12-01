@@ -68,9 +68,9 @@ const TEST_DOMAINS = [
   // "resolver-downgrade-attack.dedyn.io",
 ];
 
-const SESSION_FINISH_CANARY_DOMAIN = "resolver-downgrade-attack.dedyn.io";
+const SESSION_FINISH_CANARY_DOMAIN = "resolver-downgrade-attack.dedyn.io"; // caveat: weak logic depending on exactly this below
 
-const hash = parseInt(Math.random() * 0xFFFFFFFF);
+const hash = "adn" + parseInt(Math.random() * 0xFFFFFFFF);
 
 function log(t)
 {
@@ -106,8 +106,11 @@ function query_domain(test_domain){
     test_name = test_domain.split(".").slice(0, -3).join(".");
     if (test_name == ""){
       test_name = "session-finish";
+        src = "https://" + test_domain + "/img.png?test=" + test_name + "&tok=" + hash + "&time=" + time;
     }
-    src = "https://" + test_domain + "/img.png?test=" + test_name + "&tok=" + hash + "&time=" + time;
+    else{
+        src = "https://" + hash + "-" + test_domain + "/img.png?test=" + test_name + "&tok=" + hash + "&time=" + time;
+    }
     log(src);
     tester.src = src;
 }
